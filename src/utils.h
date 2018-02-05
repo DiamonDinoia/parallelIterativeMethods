@@ -35,11 +35,22 @@ namespace Iterative {
             explicit Index(ulonglong startCol, ulonglong endCol, ulonglong startRow, ulonglong endRow) :
                 startRow(startRow), rows(endRow), startCol(startCol), cols(endCol) {}
 
-            const ulonglong startRow;
-            const ulonglong rows;
             const ulonglong startCol;
+            const ulonglong startRow;
             const ulonglong cols;
+            const ulonglong rows;
+
+		friend std::ostream& operator<< (std::ostream &out, const Index& index){
+
+			out << index.startRow << ' ';
+			out << index.startCol << ' ';
+			out << index.cols << ' ';
+			out << index.rows << ' ';
+
+			return out << std::endl;
+		}
 	};
+
 
 
 	template <typename T>

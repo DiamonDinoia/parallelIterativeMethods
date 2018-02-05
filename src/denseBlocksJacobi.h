@@ -70,8 +70,9 @@ namespace Iterative {
                 buffer = this->solution;
 
             }
-//
-			return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
+
+
+            return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
 		}
 
 	protected:
@@ -80,9 +81,8 @@ namespace Iterative {
 
 		void splitter() {
 			for (ulonglong i = 0; i < this->matrix.cols(); i += blockSize) {
-                blocks.emplace_back(new Index(i, std::min(blockSize, (ulonglong) this->matrix.cols()),
-                                              i, std::min(blockSize, (ulonglong) this->matrix.rows())));
-//                std::cout << "block: " << i << ' ' << blockSize << '\n';
+                blocks.emplace_back(new Index(i, std::min(blockSize, (ulonglong) this->matrix.cols() - i),
+                                              i, std::min(blockSize, (ulonglong) this->matrix.rows() - i)));
             }
 		}
 

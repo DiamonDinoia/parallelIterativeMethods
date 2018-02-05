@@ -1,6 +1,7 @@
 #include <iostream>
 #include <Eigen>
 #include "denseBlocksJacobi.h"
+#include "denseOverlappingJacobi.h"
 
 using namespace std;
 using namespace Eigen;
@@ -39,12 +40,12 @@ int main(const int argc, const char* argv[]) {
 
     denseBlocksJacobi<float , 4 > marco2(matrix, test, 100, 0.f, 8, 2);
 
-    cout << marco2.solve();
+    denseOverlappingJacobi<float , 4 > marco3(matrix, test, 100, 0.f, 8, 2);
 
-	//DenseBlocksJacobi<float, 5, 5 > marco(matrix, test, 1, 0.f, 1, 8);
+    marco2.solve();
 
-	//DenseBlocksJacobi<float, 5, 5 > marco2(matrix1, test2, 1, 0.f, 1, 8);
-//
+    cout << marco3.solve();
+
 //	int ok;
 //	cin >> ok;
 	return 0;
