@@ -18,17 +18,26 @@ namespace Iterative {
 	class denseBlocksJacobi : public jacobi<Scalar, SIZE> {
 
 	public:
-
+        /**
+         *
+         * @param matrix linear system matrix
+         * @param vector known term vector
+         * @param iterations max number of iterations
+         * @param tolerance min error tolerated
+         * @param workers number of threads
+         * @param blockSize size of the block
+         */
 		explicit denseBlocksJacobi(
 			const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix,
 			const Eigen::ColumnVector<Scalar, SIZE>& vector,
 			const ulonglong iterations,
 			const Scalar tolerance,
-			const ulong workers,
+			const ulong workers=0L,
 			const ulonglong blockSize = 0L):
 				jacobi<Scalar,SIZE>::jacobi(matrix, vector, iterations, tolerance, workers) {
 
 			this->blockSize = blockSize;
+
 			if (blockSize == 0)
 				this->blockSize = std::max(ulong(this->matrix.cols() / workers), (ulong) 1L);
 			splitter();
@@ -36,11 +45,12 @@ namespace Iterative {
 
 
 		Eigen::ColumnVector<Scalar, SIZE> solve() {
-			Eigen::ColumnVector<Scalar, SIZE> old_solution(this->solution);
+
+            Eigen::ColumnVector<Scalar, SIZE> old_solution(this->solution);
 			Scalar error = this->tolerance - this->tolerance;
-            std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses (blocks.size());
+            std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> inverses (blocks.size());
 
-
+            // compute the inverses of the blocks and memorize it
             #pragma omp parallel for
             for (int i = 0; i < blocks.size(); ++i) {
                 inverses[i] = this->matrix.block(blocks[i]->startCol, blocks[i]->startRow, blocks[i]->cols,
@@ -49,13 +59,17 @@ namespace Iterative {
 
             Eigen::ColumnVector<Scalar, SIZE> buffer(this->solution);
 
+            // start iterations
 			for (auto iteration = 0; iteration < this->iterations; ++iteration) {
 
 
                 #pragma omp parallel for firstprivate(buffer) schedule(static)
                 for (int i = 0; i < inverses.size(); ++i) {
+                    // set zero the components of the solution vector that corresponds to the inverse
                     buffer.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
+                    // the segment of the solution vector that this inverse approximates
                     auto block = this->solution.segment(blocks[i]->startCol,blocks[i]->cols);
+                    // approximate the solution using the inverse and the solution at the previous iteration
 					block = inverses[i]*(this->vector-(this->matrix*buffer)).segment(blocks[i]->startCol,
                                                                                              blocks[i]->cols);
                 }

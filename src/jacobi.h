@@ -13,18 +13,24 @@ namespace Iterative {
 	class jacobi {
 
 	public:
-
+        /**
+         *
+         * @param matrix linear system matrix of max rank
+         * @param termsVector known terms vector
+         * @param iterations  max number of iterations
+         * @param tolerance min error tolerated
+         * @param workers  number of threads
+         */
 		explicit jacobi(
             const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix,
 			const Eigen::ColumnVector<Scalar, SIZE>& termsVector,
 			const ulonglong iterations,
 			const Scalar tolerance,
-			const ulong workers) :
+			const ulong workers=0L) :
 			    matrix(matrix), vector(termsVector), iterations(iterations), tolerance(tolerance),
 			        workers(workers), solution(termsVector) {
 
             solution.setZero();
-//            Eigen::ColumnVector<Scalar, SIZE> tmpSolutions(solution);
             omp_set_num_threads(workers);
 		}
 
@@ -33,11 +39,13 @@ namespace Iterative {
 			Eigen::ColumnVector<Scalar, SIZE> old_solution(solution);
 
 			for (ulonglong iteration = 0; iteration < iterations; ++iteration) {
-				Scalar error = tolerance - tolerance;
-				//calculate solutions
+				// initialize the error
+                Scalar error = tolerance - tolerance;
+				//calculate solutions parallelizing on rows
 				#pragma omp parallel for schedule(static)
-				for (long long i = 0; i < solution.size(); ++i) { solution[i] = solution_find(vector[i], i); }
-				//compute the error
+				for (long long i = 0; i < solution.size(); ++i)
+                    solution[i] = solution_find(vector[i], i);
+				//compute the error norm 1 weighted on the size of the matrix
 				error += (solution - old_solution).template lpNorm<1>();
 				// check the error
 				error /= solution.size();
@@ -68,7 +76,7 @@ namespace Iterative {
 		* @param index index of the solution
 		* @return solution component
 		*/
-		Scalar solution_find(Scalar term, const ulonglong index) {
+		inline Scalar solution_find(Scalar term, const ulonglong index) {
 			term -= matrix.row(index) * solution;
 			return (term + matrix(index, index) * solution[index]) / matrix(index, index);
 		}

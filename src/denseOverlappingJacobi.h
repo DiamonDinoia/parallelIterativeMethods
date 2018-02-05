@@ -24,7 +24,7 @@ namespace Iterative {
                 const Eigen::ColumnVector<Scalar, SIZE>& vector,
                 const ulonglong iterations,
                 const Scalar tolerance,
-                const ulong workers,
+                const ulong workers=0L,
                 const ulonglong blockSize = 0L,
                 const ulonglong overlap = 0L) :
                 jacobi<Scalar,SIZE>::jacobi(matrix, vector, iterations, tolerance, workers) {
@@ -47,6 +47,7 @@ namespace Iterative {
             Eigen::ColumnVector<Scalar, SIZE> odd_solution(this->solution);
 
 
+            // Compute the inverses in parallel
             #pragma omp parallel for
             for (int i = 0; i < blocks.size(); ++i) {
                 inverses[i] = this->matrix.block(blocks[i]->startCol, blocks[i]->startRow, blocks[i]->cols,
@@ -57,18 +58,18 @@ namespace Iterative {
 
             for (auto iteration = 0; iteration < this->iterations; ++iteration) {
 
-
-                #pragma omp parallel for firstprivate(buffer)
+                // Calculate the solution in parallel
+                #pragma omp parallel for firstprivate(buffer) scheduler(static)
                 for (int i = 0; i < inverses.size(); ++i) {
 
                     buffer.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
 
-
+                    // the odd indexes updates the odd vector and the even updates the even vector
                     if (i%2) {
                         auto block = odd_solution.segment(blocks[i]->startCol, blocks[i]->cols);
                         block = inverses[i] * (this->vector - (this->matrix * buffer)).segment(blocks[i]->startCol,
                                                                                                blocks[i]->cols);
-                    } else{
+                    } else {
                         auto block = even_solution.segment(blocks[i]->startCol,blocks[i]->cols);
                         block = inverses[i] * (this->vector - (this->matrix * buffer)).segment(blocks[i]->startCol,
                                                                                                blocks[i]->cols);
@@ -77,11 +78,15 @@ namespace Iterative {
 
                 }
 
+                // average of the two values
                 this->solution = (even_solution + odd_solution)/(Scalar)2.;
 
+                // not overlapping portion of the solution vector
                 this->solution.head(overlap) = even_solution.head(overlap);
 
-                this->solution.tail(overlap) = inverses.size()%2 ? even_solution.tail(overlap) : odd_solution.tail(overlap);
+                // not overlapping end portion of the solution vector
+                this->solution.tail(overlap) = inverses.size()%2 ?
+                                               even_solution.tail(overlap) : odd_solution.tail(overlap);
 
 
                 //compute the error
