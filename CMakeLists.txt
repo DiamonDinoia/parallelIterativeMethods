@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.0)
 project(parallelIterative)
 
 set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_FLAGS "-w")
 
 include_directories(SYSTEM lib/Eigen)
 link_directories(lib/Eigen)
@@ -17,5 +16,5 @@ endif()
 
 
 
-set(SOURCE_FILES src/main.cpp src/denseBlocksJacobi.h src/utils.h src/jacobi.h)
+set(SOURCE_FILES src/main.cpp src/denseBlocksJacobi.h src/utils.h src/jacobi.h src/denseOverlappingJacobi.h)
 add_executable(parallelIterative ${SOURCE_FILES})
