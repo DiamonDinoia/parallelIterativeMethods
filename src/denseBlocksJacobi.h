@@ -80,7 +80,7 @@ namespace Iterative {
                 error /= this->solution.size();
                 if (error <= this->tolerance) break;
 
-                swap(this->solution, old_solution);
+                std::swap(this->solution, old_solution);
                 buffer = this->solution;
 
             }

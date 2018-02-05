@@ -16,13 +16,6 @@ namespace Eigen {
 	using ColumnVector = Matrix<Scalar, SIZE, 1>;
 
 
-	template <typename Scalar, int SIZE>
-	void swap(ColumnVector<Scalar, SIZE>& a, ColumnVector<Scalar, SIZE>& b) {
-		ColumnVector<Scalar, SIZE> tmp = a;
-		a = b;
-		b = tmp;
-	}
-
 };
 
 namespace Iterative {

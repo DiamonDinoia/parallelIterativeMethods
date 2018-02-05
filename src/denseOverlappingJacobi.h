@@ -59,7 +59,7 @@ namespace Iterative {
             for (auto iteration = 0; iteration < this->iterations; ++iteration) {
 
                 // Calculate the solution in parallel
-                #pragma omp parallel for firstprivate(buffer) scheduler(static)
+                #pragma omp parallel for firstprivate(buffer)
                 for (int i = 0; i < inverses.size(); ++i) {
 
                     buffer.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
@@ -95,7 +95,7 @@ namespace Iterative {
                 error /= this->solution.size();
                 if (error <= this->tolerance) break;
 
-                swap(this->solution, old_solution);
+                std::swap(this->solution, old_solution);
                 buffer = this->solution;
 
             }

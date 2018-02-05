@@ -50,7 +50,7 @@ namespace Iterative {
 				// check the error
 				error /= solution.size();
 				if (error <= tolerance) break;
-				swap(solution, old_solution);
+				std::swap(solution, old_solution);
 			}
 			return solution;
 		}
