@@ -54,28 +54,27 @@ namespace Iterative {
                                                  blocks[i]->rows).inverse();
             }
 
-            Eigen::ColumnVector<Scalar, SIZE> buffer(this->solution);
+//            Eigen::ColumnVector<Scalar, SIZE> buffer(this->solution);
 
-            for (auto iteration = 0; iteration < this->iterations; ++iteration) {
+            auto iteration = 0L;
+            for (iteration; iteration < this->iterations; ++iteration) {
 
                 // Calculate the solution in parallel
-                #pragma omp parallel for firstprivate(buffer)
+                #pragma omp parallel for firstprivate(old_solution)
                 for (int i = 0; i < inverses.size(); ++i) {
 
-                    buffer.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
+                    old_solution.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
 
                     // the odd indexes updates the odd vector and the even updates the even vector
                     if (i%2) {
                         auto block = odd_solution.segment(blocks[i]->startCol, blocks[i]->cols);
-                        block = inverses[i] * (this->vector - (this->matrix * buffer)).segment(blocks[i]->startCol,
+                        block = inverses[i] * (this->vector - (this->matrix * old_solution)).segment(blocks[i]->startCol,
                                                                                                blocks[i]->cols);
                     } else {
                         auto block = even_solution.segment(blocks[i]->startCol,blocks[i]->cols);
-                        block = inverses[i] * (this->vector - (this->matrix * buffer)).segment(blocks[i]->startCol,
-                                                                                               blocks[i]->cols);
-
+                        block = inverses[i] * (this->vector - (this->matrix * old_solution)).segment(blocks[i]->startCol,
+                                                                                                     blocks[i]->cols);
                     }
-
                 }
 
                 // average of the two values
@@ -95,10 +94,11 @@ namespace Iterative {
                 error /= this->solution.size();
                 if (error <= this->tolerance) break;
 
+//                buffer = this->solution;
                 std::swap(this->solution, old_solution);
-                buffer = this->solution;
 
             }
+            std::cout << iteration << std::endl;
             return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
         }
 
@@ -112,8 +112,6 @@ namespace Iterative {
             for (ulonglong i = 0; i < this->matrix.cols()-overlap; i += (blockSize-overlap))
                 blocks.emplace_back(new Index(i, std::min(blockSize, (ulonglong) this->matrix.cols() - i),
                                               i, std::min(blockSize, (ulonglong) this->matrix.rows() - i)));
-
-//            for (auto &block : blocks) std::cout << *block;
         }
 
 

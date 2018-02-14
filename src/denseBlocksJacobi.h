@@ -9,7 +9,6 @@
 #include "Eigen"
 #include "utils.h"
 #include "jacobi.h"
-#include <typeinfo>
 
 
 namespace Iterative {
@@ -47,7 +46,6 @@ namespace Iterative {
 		Eigen::ColumnVector<Scalar, SIZE> solve() {
 
             Eigen::ColumnVector<Scalar, SIZE> old_solution(this->solution);
-			Scalar error = this->tolerance - this->tolerance;
             std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> inverses (blocks.size());
 
             // compute the inverses of the blocks and memorize it
@@ -57,35 +55,50 @@ namespace Iterative {
                                                  blocks[i]->rows).inverse();
             }
 
-            Eigen::ColumnVector<Scalar, SIZE> buffer(this->solution);
-
             // start iterations
-			for (auto iteration = 0; iteration < this->iterations; ++iteration) {
+            auto iteration = 0L;
+            std::vector<int> index;
 
+			for (iteration; iteration < this->iterations; ++iteration) {
 
-                #pragma omp parallel for firstprivate(buffer) schedule(static)
+                #pragma omp parallel for firstprivate(old_solution)
                 for (int i = 0; i < inverses.size(); ++i) {
                     // set zero the components of the solution vector that corresponds to the inverse
-                    buffer.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
+                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> oldBlock = old_solution.segment(blocks[i]->startCol,
+                                                                                               blocks[i]->cols);
+
+                    old_solution.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
                     // the segment of the solution vector that this inverse approximates
-                    auto block = this->solution.segment(blocks[i]->startCol,blocks[i]->cols);
+                    auto block = this->solution.segment(blocks[i]->startCol, blocks[i]->cols);
                     // approximate the solution using the inverse and the solution at the previous iteration
-					block = inverses[i]*(this->vector-(this->matrix*buffer)).segment(blocks[i]->startCol,
-                                                                                             blocks[i]->cols);
+					block = inverses[i]*(this->vector-(this->matrix*old_solution)).segment(blocks[i]->startCol,
+                                                                                           blocks[i]->cols);
+
+                    auto error = (oldBlock-block).template lpNorm<1>()/block.size();
+
+                    if(error<=this->tolerance) {
+                        #pragma omp critical
+                        index.emplace_back(i);
+                    }
                 }
 
-                //compute the error
-                error += (this->solution - old_solution).template lpNorm<1>();
-                // check the error
-                error /= this->solution.size();
-                if (error <= this->tolerance) break;
 
+                if(!index.empty()) {
+                    std::sort(index.begin(), index.end(), std::greater<>());
+                    for (auto i: index) {
+                        blocks.erase(blocks.begin() + i);
+                        inverses.erase(inverses.begin() + i);
+                    }
+                    index.clear();
+                    if (inverses.empty()) break;
+                }
                 std::swap(this->solution, old_solution);
-                buffer = this->solution;
 
+//                old_solution=this->solution;
             }
 
 
+            std::cout << iteration << std::endl;
             return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
 		}
 
