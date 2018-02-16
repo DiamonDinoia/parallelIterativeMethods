@@ -6,12 +6,11 @@
 #define PARALLELITERATIVE_ASYNCJACOBI_H
 
 
-
-
+#include <iostream>
 #include "Eigen"
 #include "utils.h"
 #include "jacobi.h"
-
+#include <omp.h>
 
 namespace Iterative {
 
@@ -28,14 +27,14 @@ namespace Iterative {
          * @param workers number of threads
          * @param blockSize size of the block
          */
-        explicit denseBlocksJacobi(
-                const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix,
-                const Eigen::ColumnVector<Scalar, SIZE>& vector,
-                const ulonglong iterations,
-                const Scalar tolerance,
-                const ulong workers=0L,
-                const ulonglong blockSize = 0L,
-                const unsigned int async = 4):
+	    explicit asyncBlocksJacobi(
+		    const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix,
+		    const Eigen::ColumnVector<Scalar, SIZE>& vector,
+		    const ulonglong iterations,
+		    const Scalar tolerance,
+		    const ulong workers=0L,
+		    const ulonglong blockSize = 0L,
+		    const unsigned int async = 4):
                 jacobi<Scalar,SIZE>::jacobi(matrix, vector, iterations, tolerance, workers), async(async) {
 
             this->blockSize = blockSize;
@@ -48,8 +47,8 @@ namespace Iterative {
 
         Eigen::ColumnVector<Scalar, SIZE> solve() {
 
-            Eigen::ColumnVector<Scalar, SIZE> old_solution(this->solution);
-            std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> inverses (blocks.size());
+            Eigen::ColumnVector<Scalar, SIZE> oldSolution(this->solution);
+            std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> inverses(blocks.size());
 
             // compute the inverses of the blocks and memorize it
             #pragma omp parallel for
@@ -60,48 +59,60 @@ namespace Iterative {
 
             // start iterations
             auto iteration = 0L;
+
             std::vector<int> index;
 
-            for (iteration; iteration < this->iterations; iteration+=async) {
+			auto stop = false;
 
-                #pragma omp parallel for firstprivate(old_solution) schedule(dynamic)
-                for (int i = 0; i < inverses.size(); i++) {
+            for (iteration; iteration < this->iterations && !stop; ++iteration) {
+                #pragma omp parallel
+                #pragma omp for private(oldSolution) schedule(dynamic) nowait
+                for (int i = 0; i < inverses.size(); ++i) {
 
+//                    std::cout << omp_get_thread_num() << std::endl;
+
+                    oldSolution = this->solution;
                     // set zero the components of the solution b that corresponds to the inverse
-                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> oldBlock = old_solution.segment(blocks[i].startCol,
-                                                                                               blocks[i].cols);
+                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(
+                            blocks[i].startCol,
+                            blocks[i].cols);
 
-                    old_solution.segment(blocks[i].startCol, blocks[i].cols).setZero();
+                    auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
 
-                    for (int async_step = 0; async_step < async; ++async_step) {
-                        // the segment of the solution b that this inverse approximates
-                        auto block = this->solution.segment(blocks[i].startCol, blocks[i].cols);
-                        // approximate the solution using the inverse and the solution at the previous iteration
-                        block = inverses[i]*(this->b-(this->A*old_solution)).segment(blocks[i].startCol,
-                                                                                               blocks[i].cols);
+                    zeroBlock.setZero();
+                    // the segment of the solution b that this inverse approximates
+                    auto block = this->solution.segment(blocks[i].startCol, blocks[i].cols);
+                    // approximate the solution using the inverse and the solution at the previous iteration
+                    block = inverses[i] *
+                            (this->b - (this->A * oldSolution)).segment(blocks[i].startCol, blocks[i].cols);
 
-                        if((oldBlock-block).template lpNorm<1>()/block.size()<=this->tolerance) {
-                            #pragma omp critical
-                            index.emplace_back(i);
+
+                    zeroBlock = oldBlock;
+
+//                    std::cout << "CIAONE" << std::endl;
+
+                    if ((oldBlock - block).template lpNorm<1>() / block.size() <= this->tolerance) {
+                        #pragma omp critical
+                        index.emplace_back(i);
+                    }
+                }
+                if (!index.empty()) {
+                    #pragma omp barrier
+
+                    #pragma omp single
+                    {
+                        std::sort(index.rbegin(), index.rend());
+                        for (auto i : index) {
+                            blocks.erase(blocks.begin() + i);
+                            inverses.erase(inverses.begin() + i);
                         }
-
-                    }
-
+                        index.clear();
+                        stop = inverses.empty();
+                    };
                 }
 
-                if(!index.empty()) {
-                    std::sort(index.rbegin(), index.rend());
-                    for (auto i: index) {
-                        blocks.erase(blocks.begin() + i);
-                        inverses.erase(inverses.begin() + i);
-                    }
-                    index.clear();
-                    if (inverses.empty()) break;
-                }
-
-//                old_solution=this->solution;
-                std::swap(this->solution, old_solution);
             }
+            #pragma omp barrier
             std::cout << iteration << std::endl;
             return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
         }
@@ -120,15 +131,6 @@ namespace Iterative {
 
 
     private:
-        template<typename Cont, typename It>
-        auto ToggleIndices(Cont &cont, It beg, It end) -> decltype(std::end(cont))
-        {
-            int helpIndx(0);
-            return std::stable_partition(std::begin(cont), std::end(cont),
-                                         [&](typename Cont::value_type const& val) -> bool {
-                                             return std::find(beg, end, helpIndx++) != end;
-                                         });
-        }
 
     };
 

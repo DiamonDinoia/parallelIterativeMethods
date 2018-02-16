@@ -2,6 +2,7 @@
 #include <Eigen>
 #include "denseBlocksJacobi.h"
 #include "denseOverlappingJacobi.h"
+#include "asyncBlocksJacobi.h"
 //#include "test.h"
 
 using namespace std;
@@ -20,9 +21,9 @@ int main(const int argc, const char* argv[]) {
 
 	Matrix<float, 4, 4> matrix;
 	matrix << 10., -1., 2., 0.,
-		-1., 11., -1., 3.,
-		2., -1., 10., -1.,
-		0., 3., -1., 8.;
+			  -1., 11., -1., 3.,
+			  2., -1., 10., -1.,
+			  0., 3., -1., 8.;
 	Matrix<float, Dynamic, Dynamic> matrix1(3, 3);
 
 	ColumnVector<float, 4> test;
@@ -38,19 +39,23 @@ int main(const int argc, const char* argv[]) {
 
 
 
-//    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; ++i) {
 
     denseBlocksJacobi<float , 4 > marco2(matrix, test, 100, 0.f, 8, 2);
     denseOverlappingJacobi<float , 4 > marco3(matrix, test, 100, 0.f, 8, 2);
+
+    asyncBlocksJacobi<float, 4> marco4(matrix, test, 100, 0, 8, 2, 0);
 
     cout << marco2.solve().transpose() << endl;
 
     cout << marco3.solve().transpose() << endl;
 
-//    }
+    cout << marco4.solve().transpose() << endl;
+
+    }
 
 //    create_matrix<SparseMatrix, float, 4>;
-
+//
 //	int ok;
 //	cin >> ok;
 	return 0;

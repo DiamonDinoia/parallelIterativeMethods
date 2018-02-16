@@ -71,7 +71,7 @@ namespace Iterative {
 					Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(blocks[i].startCol,
 						blocks[i].cols);
 
-                    Eigen::Block zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
+                    auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
 
                     zeroBlock.setZero();
 					// the segment of the solution b that this inverse approximates
@@ -80,8 +80,7 @@ namespace Iterative {
 					block = inverses[i] *
 						(this->b - (this->A * oldSolution)).segment(blocks[i].startCol, blocks[i].cols);
 
-
-                    zeroBlock=oldBlock;
+                    zeroBlock = oldBlock;
 
 					if ((oldBlock - block).template lpNorm<1>() / block.size() <= this->tolerance) {
                         #pragma omp critical
