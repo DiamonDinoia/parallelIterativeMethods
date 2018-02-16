@@ -39,6 +39,7 @@ namespace Iterative {
 
 
         Eigen::ColumnVector<Scalar, SIZE> solve() {
+
             Eigen::ColumnVector<Scalar, SIZE> old_solution(this->solution);
             Scalar error = this->tolerance - this->tolerance;
             std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses (blocks.size());
@@ -50,8 +51,8 @@ namespace Iterative {
             // Compute the inverses in parallel
             #pragma omp parallel for
             for (int i = 0; i < blocks.size(); ++i) {
-                inverses[i] = this->A.block(blocks[i]->startCol, blocks[i]->startRow, blocks[i]->cols,
-                                                 blocks[i]->rows).inverse();
+                inverses[i] = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
+                                                 blocks[i].rows).inverse();
             }
 
 //            Eigen::ColumnVector<Scalar, SIZE> buffer(this->solution);
@@ -63,22 +64,22 @@ namespace Iterative {
                 #pragma omp parallel for firstprivate(old_solution) schedule(dynamic)
                 for (int i = 0; i < inverses.size(); ++i) {
 
-                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> oldBlock = old_solution.segment(blocks[i]->startCol,
-                                                                                               blocks[i]->cols);
+                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> oldBlock = old_solution.segment(blocks[i].startCol,
+                                                                                               blocks[i].cols);
 
-                    auto zeroBlock = old_solution.segment(blocks[i]->startCol, blocks[i]->cols);
+                    auto zeroBlock = old_solution.segment(blocks[i].startCol, blocks[i].cols);
 
                     zeroBlock.setZero();
 
                     // the odd indexes updates the odd b and the even updates the even b
                     if (i%2) {
-                        auto block = odd_solution.segment(blocks[i]->startCol, blocks[i]->cols);
-                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i]->startCol,
-                                                                                               blocks[i]->cols);
+                        auto block = odd_solution.segment(blocks[i].startCol, blocks[i].cols);
+                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i].startCol,
+                                                                                               blocks[i].cols);
                     } else {
-                        auto block = even_solution.segment(blocks[i]->startCol,blocks[i]->cols);
-                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i]->startCol,
-                                                                                                     blocks[i]->cols);
+                        auto block = even_solution.segment(blocks[i].startCol,blocks[i].cols);
+                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i].startCol,
+                                                                                                     blocks[i].cols);
                     }
 
                     zeroBlock = oldBlock;
@@ -110,13 +111,13 @@ namespace Iterative {
 
     protected:
         ulonglong blockSize;
-        std::vector<Index*> blocks;
+        std::vector<Index> blocks;
 
         ulonglong overlap;
 
         void splitter() {
             for (ulonglong i = 0; i < this->A.cols()-overlap; i += (blockSize-overlap))
-                blocks.emplace_back(new Index(i, std::min(blockSize, (ulonglong) this->A.cols() - i),
+                blocks.emplace_back(Index(i, std::min(blockSize, (ulonglong) this->A.cols() - i),
                                               i, std::min(blockSize, (ulonglong) this->A.rows() - i)));
         }
 
