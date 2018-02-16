@@ -121,8 +121,8 @@ public:
     {
       typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _NestedMatrixType;
       _NestedMatrixType& matrix = m_matrix;
-      // This assignment is slow if this vector set is not empty
-      // and/or it is not at the end of the nonzeros of the underlying matrix.
+      // This assignment is slow if this b set is not empty
+      // and/or it is not at the end of the nonzeros of the underlying A.
 
       // 1 - eval to a temporary to avoid transposition and/or aliasing issues
       Ref<const SparseMatrix<Scalar, IsRowMajor ? RowMajor : ColMajor, StorageIndex> > tmp(other.derived());
@@ -564,10 +564,10 @@ public:
     // search next non-zero entry
     while(++m_outerPos<m_end)
     {
-      // Restart iterator at the next inner-vector:
+      // Restart iterator at the next inner-b:
       m_it.~EvalIterator();
       ::new (&m_it) EvalIterator(m_eval.m_argImpl, m_outerPos);
-      // search for the key m_innerIndex in the current outer-vector
+      // search for the key m_innerIndex in the current outer-b
       while(m_it && m_it.index() < m_innerIndex) ++m_it;
       if(m_it && m_it.index()==m_innerIndex) break;
     }

@@ -425,7 +425,7 @@ typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::absDeterminant
 {
   using std::abs;
   eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square A!");
   return abs(m_qr.diagonal().prod());
 }
 
@@ -433,7 +433,7 @@ template<typename MatrixType>
 typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::logAbsDeterminant() const
 {
   eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square A!");
   return m_qr.diagonal().cwiseAbs().array().log().sum();
 }
 
@@ -622,7 +622,7 @@ public:
     using numext::conj;
     // compute the product H'_0 H'_1 ... H'_n-1,
     // where H_k is the k-th Householder transformation I - h_k v_k v_k'
-    // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
+    // and v_k is the k-th Householder b [1,m_qr(k+1,k), m_qr(k+2,k), ...]
     const Index rows = m_qr.rows();
     const Index cols = m_qr.cols();
     const Index size = (std::min)(rows, cols);

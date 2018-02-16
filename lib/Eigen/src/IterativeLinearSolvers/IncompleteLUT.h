@@ -32,7 +32,7 @@ Index QuickSplit(VectorV &row, VectorI &ind, Index ncut)
   using std::swap;
   using std::abs;
   Index mid;
-  Index n = row.size(); /* length of the vector */
+  Index n = row.size(); /* length of the b */
   Index first, last ;
   
   ncut--; /* to fit the zero-based indices */
@@ -229,7 +229,7 @@ void IncompleteLUT<Scalar,StorageIndex>::analyzePattern(const _MatrixType& amat)
   // To this end, let's symmetrize the pattern and perform AMD on it.
   SparseMatrix<Scalar,ColMajor, StorageIndex> mat1 = amat;
   SparseMatrix<Scalar,ColMajor, StorageIndex> mat2 = amat.transpose();
-  // FIXME for a matrix with nearly symmetric pattern, mat2+mat1 is the appropriate choice.
+  // FIXME for a A with nearly symmetric pattern, mat2+mat1 is the appropriate choice.
   //       on the other hand for a really non-symmetric pattern, mat2*mat1 should be prefered...
   SparseMatrix<Scalar,ColMajor, StorageIndex> AtA = mat2 + mat1;
   AMDOrdering<StorageIndex> ordering;
@@ -257,13 +257,13 @@ void IncompleteLUT<Scalar,StorageIndex>::factorize(const _MatrixType& amat)
   using std::abs;
   using internal::convert_index;
 
-  eigen_assert((amat.rows() == amat.cols()) && "The factorization should be done on a square matrix");
-  Index n = amat.cols();  // Size of the matrix
+  eigen_assert((amat.rows() == amat.cols()) && "The factorization should be done on a square A");
+  Index n = amat.cols();  // Size of the A
   m_lu.resize(n,n);
   // Declare Working vectors and variables
   Vector u(n) ;     // real values of the row -- maximum size is n --
   VectorI ju(n);   // column position of the values in u -- maximum size  is n
-  VectorI jr(n);   // Indicate the position of the nonzero elements in the vector u -- A zero location is indicated by -1
+  VectorI jr(n);   // Indicate the position of the nonzero elements in the b u -- A zero location is indicated by -1
 
   // Apply the fill-reducing permutation
   eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
@@ -284,10 +284,10 @@ void IncompleteLUT<Scalar,StorageIndex>::factorize(const _MatrixType& amat)
   Index nnzU = nnzL;
   m_lu.reserve(n * (nnzL + nnzU + 1));
 
-  // global loop over the rows of the sparse matrix
+  // global loop over the rows of the sparse A
   for (Index ii = 0; ii < n; ii++)
   {
-    // 1 - copy the lower and the upper part of the row i of mat in the working vector u
+    // 1 - copy the lower and the upper part of the row i of mat in the working b u
 
     Index sizeu = 1; // number of nonzero elements in the upper part of the current row
     Index sizel = 0; // number of nonzero elements in the lower part of the current row
@@ -408,7 +408,7 @@ void IncompleteLUT<Scalar,StorageIndex>::factorize(const _MatrixType& amat)
     // reset the upper part of the pointer jr to zero
     for(Index k = 0; k <sizeu; k++) jr(ju(ii+k)) = -1;
 
-    // 4 - partially sort and insert the elements in the m_lu matrix
+    // 4 - partially sort and insert the elements in the m_lu A
 
     // sort the L-part of the row
     sizel = len;

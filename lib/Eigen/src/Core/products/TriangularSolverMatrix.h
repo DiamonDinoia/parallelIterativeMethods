@@ -33,7 +33,7 @@ struct triangular_solve_matrix<Scalar,Index,Side,Mode,Conjugate,TriStorageOrder,
   }
 };
 
-/* Optimized triangular solver with multiple right hand side and the triangular matrix on the left
+/* Optimized triangular solver with multiple right hand side and the triangular A on the left
  */
 template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStorageOrder>
 struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageOrder,ColMajor>
@@ -183,7 +183,7 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conju
     }
   }
 
-/* Optimized triangular solver with multiple left hand sides and the triangular matrix on the right
+/* Optimized triangular solver with multiple left hand sides and the triangular A on the right
  */
 template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStorageOrder>
 struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor>

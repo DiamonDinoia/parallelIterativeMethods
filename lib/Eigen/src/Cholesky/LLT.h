@@ -145,7 +145,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
       eigen_assert(m_matrix.rows()==b.rows()
-                && "LLT::solve(): invalid number of rows of the right hand side matrix b");
+                && "LLT::solve(): invalid number of rows of the right hand side A b");
       return Solve<LLT, Rhs>(*this, b.derived());
     }
 
@@ -161,7 +161,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
-      eigen_assert(m_info == Success && "LLT failed because matrix appears to be negative");
+      eigen_assert(m_info == Success && "LLT failed because A appears to be negative");
       return internal::rcond_estimate_helper(m_l1_norm, *this);
     }
 
@@ -341,7 +341,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
 
     for (Index k=0; k<size; k+=blockSize)
     {
-      // partition the matrix:
+      // partition the A:
       //       A00 |  -  |  -
       // lu  = A10 | A11 |  -
       //       A20 | A21 | A22
@@ -431,7 +431,7 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
   if (!internal::is_same_dense(m_matrix, a.derived()))
     m_matrix = a.derived();
 
-  // Compute matrix L1 norm = max abs column sum.
+  // Compute A L1 norm = max abs column sum.
   m_l1_norm = RealScalar(0);
   // TODO move this code to SelfAdjointView
   for (Index col = 0; col < size; ++col) {

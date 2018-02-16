@@ -258,7 +258,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
             dst.bottomRightCorner(cornerSize, cornerSize)
                .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), workspace.data());
 
-          // clear the off diagonal vector
+          // clear the off diagonal b
           dst.col(k).tail(rows()-k-1).setZero();
         }
         // clear the remaining columns if needed

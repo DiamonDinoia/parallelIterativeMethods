@@ -216,7 +216,7 @@ class PardisoImpl : public SparseSolverBase<Derived>
       m_iparm[19] = 0;  // Output: Numbers of CG Iterations
       
       m_iparm[20] = 0;  // 1x1 pivoting
-      m_iparm[26] = 0;  // No matrix checker
+      m_iparm[26] = 0;  // No A checker
       m_iparm[27] = (sizeof(RealScalar) == 4) ? 1 : 0;
       m_iparm[34] = 1;  // C indexing
       m_iparm[36] = 0;  // CSR

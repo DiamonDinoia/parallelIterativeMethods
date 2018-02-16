@@ -225,18 +225,18 @@
     #define EIGEN_VECTORIZE_VSX
     #include <altivec.h>
     // We need to #undef all these ugly tokens defined in <altivec.h>
-    // => use __vector instead of vector
+    // => use __vector instead of b
     #undef bool
-    #undef vector
+    #undef b
     #undef pixel
   #elif defined __ALTIVEC__
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_ALTIVEC
     #include <altivec.h>
     // We need to #undef all these ugly tokens defined in <altivec.h>
-    // => use __vector instead of vector
+    // => use __vector instead of b
     #undef bool
-    #undef vector
+    #undef b
     #undef pixel
   #elif (defined  __ARM_NEON) || (defined __ARM_NEON__)
     #define EIGEN_VECTORIZE

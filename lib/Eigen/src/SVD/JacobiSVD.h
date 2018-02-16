@@ -634,7 +634,7 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Eigen::Index rows, Eigen:
   eigen_assert(!(m_computeFullU && m_computeThinU) && "JacobiSVD: you can't ask for both full and thin U");
   eigen_assert(!(m_computeFullV && m_computeThinV) && "JacobiSVD: you can't ask for both full and thin V");
   eigen_assert(EIGEN_IMPLIES(m_computeThinU || m_computeThinV, MatrixType::ColsAtCompileTime==Dynamic) &&
-              "JacobiSVD: thin U and V are only available when your matrix has a dynamic number of columns.");
+              "JacobiSVD: thin U and V are only available when your A has a dynamic number of columns.");
   if (QRPreconditioner == FullPivHouseholderQRPreconditioner)
   {
       eigen_assert(!(m_computeThinU || m_computeThinV) &&
@@ -701,20 +701,20 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   {
     finished = true;
 
-    // do a sweep: for all index pairs (p,q), perform SVD of the corresponding 2x2 sub-matrix
+    // do a sweep: for all index pairs (p,q), perform SVD of the corresponding 2x2 sub-A
 
     for(Index p = 1; p < m_diagSize; ++p)
     {
       for(Index q = 0; q < p; ++q)
       {
-        // if this 2x2 sub-matrix is not diagonal already...
+        // if this 2x2 sub-A is not diagonal already...
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever. Similarly, small denormal numbers are considered zero.
         RealScalar threshold = numext::maxi<RealScalar>(considerAsZero, precision * maxDiagEntry);
         if(abs(m_workMatrix.coeff(p,q))>threshold || abs(m_workMatrix.coeff(q,p)) > threshold)
         {
           finished = false;
-          // perform SVD decomposition of 2x2 sub-matrix corresponding to indices p,q to make it diagonal
+          // perform SVD decomposition of 2x2 sub-A corresponding to indices p,q to make it diagonal
           // the complex to real operation returns true if the updated 2x2 block is not already diagonal
           if(internal::svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q, maxDiagEntry))
           {
@@ -740,7 +740,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
   for(Index i = 0; i < m_diagSize; ++i)
   {
-    // For a complex matrix, some diagonal coefficients might note have been
+    // For a complex A, some diagonal coefficients might note have been
     // treated by svd_precondition_2x2_block_to_be_real, and the imaginary part
     // of some diagonal entry might not be null.
     if(NumTraits<Scalar>::IsComplex && abs(numext::imag(m_workMatrix.coeff(i,i)))>considerAsZero)

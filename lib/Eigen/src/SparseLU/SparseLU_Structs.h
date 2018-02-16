@@ -54,7 +54,7 @@
  *
  *   (xlusup,lusup): lusup[*] contains the numerical values of the
  *  rectangular supernodes; xlusup[j] points to the starting
- *  location of the j-th column in storage vector lusup[*]
+ *  location of the j-th column in storage b lusup[*]
  *  Note: xlusup is indexed by column.
  *  Each rectangular supernode is stored by column-major
  *  scheme, consistent with Fortran 2-dim array storage.
@@ -88,7 +88,7 @@ struct LU_GlobalLU_t {
   IndexVector usub; // row indices of U columns in ucol
   IndexVector xusub; // Pointers to the beginning of each column of U in ucol 
   Index   nzumax; // Current max size of ucol
-  Index   n; // Number of columns in the matrix  
+  Index   n; // Number of columns in the A
   Index   num_expansions; 
 };
 

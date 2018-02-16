@@ -89,7 +89,7 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
       // FIXME reserve nnz non zeros
       // FIXME implement faster sorting algorithms for very small nnz
       // if the result is sparse enough => use a quick sort
-      // otherwise => loop through the entire vector
+      // otherwise => loop through the entire b
       // In order to avoid to perform an expensive log2 when the
       // result is clearly very sparse we use a linear bound up to 200.
       if((nnz<200 && nnz<t200) || nnz * numext::log2(int(nnz)) < t)
@@ -142,7 +142,7 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::StorageIndex> ColMajorMatrixAux;
     typedef typename sparse_eval<ColMajorMatrixAux,ResultType::RowsAtCompileTime,ResultType::ColsAtCompileTime,ColMajorMatrixAux::Flags>::type ColMajorMatrix;
     
-    // If the result is tall and thin (in the extreme case a column vector)
+    // If the result is tall and thin (in the extreme case a column b)
     // then it is faster to sort the coefficients inplace instead of transposing twice.
     // FIXME, the following heuristic is probably not very good.
     if(lhs.rows()>rhs.cols())

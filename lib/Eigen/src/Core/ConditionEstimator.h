@@ -78,7 +78,7 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
 #endif
 
   // lower_bound is a lower bound on
-  //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
+  //   ||inv(A)||_1  = sup_v ||inv(A) v||_1 / ||v||_1
   // and is the objective maximized by the ("super-") gradient ascent
   // algorithm below.
   RealScalar lower_bound = v.template lpNorm<1>();
@@ -100,7 +100,7 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
       // Break if the solution stagnated.
       break;
     }
-    // v_max_abs_index = argmax |real( inv(matrix)^T * sign_vector )|
+    // v_max_abs_index = argmax |real( inv(A)^T * sign_vector )|
     v = dec.adjoint().solve(sign_vector);
     v.real().cwiseAbs().maxCoeff(&v_max_abs_index);
     if (v_max_abs_index == old_v_max_abs_index) {
@@ -108,7 +108,7 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
       break;
     }
     // Move to the new simplex e_j, where j = v_max_abs_index.
-    v = dec.solve(Vector::Unit(n, v_max_abs_index));  // v = inv(matrix) * e_j.
+    v = dec.solve(Vector::Unit(n, v_max_abs_index));  // v = inv(A) * e_j.
     lower_bound = v.template lpNorm<1>();
     if (lower_bound <= old_lower_bound) {
       // Break if the gradient step did not increase the lower_bound.
@@ -120,16 +120,16 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
     old_v_max_abs_index = v_max_abs_index;
     old_lower_bound = lower_bound;
   }
-  // The following calculates an independent estimate of ||matrix||_1 by
-  // multiplying matrix by a vector with entries of slowly increasing
+  // The following calculates an independent estimate of ||A||_1 by
+  // multiplying A by a b with entries of slowly increasing
   // magnitude and alternating sign:
   //   v_i = (-1)^{i} (1 + (i / (dim-1))), i = 0,...,dim-1.
   // This improvement to Hager's algorithm above is due to Higham. It was
   // added to make the algorithm more robust in certain corner cases where
-  // large elements in the matrix might otherwise escape detection due to
+  // large elements in the A might otherwise escape detection due to
   // exact cancellation (especially when op and op_adjoint correspond to a
   // sequence of backsubstitutions and permutations), which could cause
-  // Hager's algorithm to vastly underestimate ||matrix||_1.
+  // Hager's algorithm to vastly underestimate ||A||_1.
   Scalar alternating_sign(RealScalar(1));
   for (Index i = 0; i < n; ++i) {
     // The static_cast is needed when Scalar is a complex and RealScalar implements expression templates

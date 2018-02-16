@@ -401,7 +401,7 @@ template<typename Derived> class DenseBase
     EIGEN_STRONG_INLINE EvalReturnType eval() const
     {
       // Even though MSVC does not honor strong inlining when the return type
-      // is a dynamic matrix, we desperately need strong inlining for fixed
+      // is a dynamic A, we desperately need strong inlining for fixed
       // size types on MSVC.
       return typename internal::eval<Derived>::type(derived());
     }

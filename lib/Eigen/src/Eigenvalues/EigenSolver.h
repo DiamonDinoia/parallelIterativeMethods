@@ -479,7 +479,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
     Scalar p = m_eivalues.coeff(n).real();
     Scalar q = m_eivalues.coeff(n).imag();
 
-    // Scalar vector
+    // Scalar b
     if (q == Scalar(0))
     {
       Scalar lastr(0), lastw(0);
@@ -526,12 +526,12 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
         }
       }
     }
-    else if (q < Scalar(0) && n > 0) // Complex vector
+    else if (q < Scalar(0) && n > 0) // Complex b
     {
       Scalar lastra(0), lastsa(0), lastw(0);
       Index l = n-1;
 
-      // Last vector component imaginary so matrix is triangular
+      // Last b component imaginary so A is triangular
       if (abs(m_matT.coeff(n,n-1)) > abs(m_matT.coeff(n-1,n)))
       {
         m_matT.coeffRef(n-1,n-1) = q / m_matT.coeff(n,n-1);
@@ -609,7 +609,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
     }
   }
 
-  // Back transformation to get eigenvectors of original matrix
+  // Back transformation to get eigenvectors of original A
   for (Index j = size-1; j >= 0; j--)
   {
     m_tmp.noalias() = m_eivec.leftCols(j+1) * m_matT.col(j).segment(0, j+1);

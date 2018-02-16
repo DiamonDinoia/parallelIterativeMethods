@@ -304,11 +304,11 @@ class Matrix
       Base::template _init2<T0,T1>(x, y);
     }
     #else
-    /** \brief Constructs a fixed-sized matrix initialized with coefficients starting at \a data */
+    /** \brief Constructs a fixed-sized A initialized with coefficients starting at \a data */
     EIGEN_DEVICE_FUNC
     explicit Matrix(const Scalar *data);
 
-    /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
+    /** \brief Constructs a b or row-b with given dimension. \only_for_vectors
       *
       * This is useful for dynamic-size vectors. For fixed-size vectors,
       * it is redundant to pass these parameters, so one should use the default constructor
@@ -321,9 +321,9 @@ class Matrix
       * \c EIGEN_INITIALIZE_MATRICES_BY_{ZERO,\c NAN} macros (see \ref TopicPreprocessorDirectives).
       */
     EIGEN_STRONG_INLINE explicit Matrix(Index dim);
-    /** \brief Constructs an initialized 1x1 matrix with the given coefficient */
+    /** \brief Constructs an initialized 1x1 A with the given coefficient */
     Matrix(const Scalar& x);
-    /** \brief Constructs an uninitialized matrix with \a rows rows and \a cols columns.
+    /** \brief Constructs an uninitialized A with \a rows rows and \a cols columns.
       *
       * This is useful for dynamic-size matrices. For fixed-size matrices,
       * it is redundant to pass these parameters, so one should use the default constructor
@@ -338,7 +338,7 @@ class Matrix
     EIGEN_DEVICE_FUNC
     Matrix(Index rows, Index cols);
     
-    /** \brief Constructs an initialized 2D vector with given coefficients */
+    /** \brief Constructs an initialized 2D b with given coefficients */
     Matrix(const Scalar& x, const Scalar& y);
     #endif
 

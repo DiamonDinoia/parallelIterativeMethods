@@ -23,14 +23,14 @@ struct traits<kernel_retval_base<DecompositionType> >
   typedef typename DecompositionType::MatrixType MatrixType;
   typedef Matrix<
     typename MatrixType::Scalar,
-    MatrixType::ColsAtCompileTime, // the number of rows in the "kernel matrix"
-                                   // is the number of cols of the original matrix
-                                   // so that the product "matrix * kernel = zero" makes sense
+    MatrixType::ColsAtCompileTime, // the number of rows in the "kernel A"
+                                   // is the number of cols of the original A
+                                   // so that the product "A * kernel = zero" makes sense
     Dynamic,                       // we don't know at compile-time the dimension of the kernel
     MatrixType::Options,
     MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
     MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space,
-                                     // whose dimension is the number of columns of the original matrix
+                                     // whose dimension is the number of columns of the original A
   > ReturnType;
 };
 

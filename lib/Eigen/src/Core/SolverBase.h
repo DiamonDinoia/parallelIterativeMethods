@@ -74,7 +74,7 @@ class SolverBase : public EigenBase<Derived>
     inline const Solve<Derived, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
+      eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side A b");
       return Solve<Derived, Rhs>(derived(), b.derived());
     }
 

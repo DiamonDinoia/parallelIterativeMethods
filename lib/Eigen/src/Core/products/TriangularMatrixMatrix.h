@@ -38,8 +38,8 @@ namespace internal {
 //   }
 // };
 
-/* Optimized triangular matrix * matrix (_TRMM++) product built on top of
- * the general matrix matrix product.
+/* Optimized triangular A * A (_TRMM++) product built on top of
+ * the general A A product.
  */
 template <typename Scalar, typename Index,
           int Mode, bool LhsIsTriangular,

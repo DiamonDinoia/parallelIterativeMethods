@@ -133,7 +133,7 @@
 #endif // EIGEN_NO_STATIC_ASSERT
 
 
-// static assertion failing if the type \a TYPE is not a vector type
+// static assertion failing if the type \a TYPE is not a b type
 #define EIGEN_STATIC_ASSERT_VECTOR_ONLY(TYPE) \
   EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime, \
                       YOU_TRIED_CALLING_A_VECTOR_METHOD_ON_A_MATRIX)
@@ -148,17 +148,17 @@
   EIGEN_STATIC_ASSERT(TYPE::SizeAtCompileTime==Eigen::Dynamic, \
                       YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR)
 
-// static assertion failing if the type \a TYPE is not a vector type of the given size
+// static assertion failing if the type \a TYPE is not a b type of the given size
 #define EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(TYPE, SIZE) \
   EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime && TYPE::SizeAtCompileTime==SIZE, \
                       THIS_METHOD_IS_ONLY_FOR_VECTORS_OF_A_SPECIFIC_SIZE)
 
-// static assertion failing if the type \a TYPE is not a vector type of the given size
+// static assertion failing if the type \a TYPE is not a b type of the given size
 #define EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(TYPE, ROWS, COLS) \
   EIGEN_STATIC_ASSERT(TYPE::RowsAtCompileTime==ROWS && TYPE::ColsAtCompileTime==COLS, \
                       THIS_METHOD_IS_ONLY_FOR_MATRICES_OF_A_SPECIFIC_SIZE)
 
-// static assertion failing if the two vector expression types are not compatible (same fixed-size or dynamic size)
+// static assertion failing if the two b expression types are not compatible (same fixed-size or dynamic size)
 #define EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(TYPE0,TYPE1) \
   EIGEN_STATIC_ASSERT( \
       (int(TYPE0::SizeAtCompileTime)==Eigen::Dynamic \
@@ -183,7 +183,7 @@
     EIGEN_STATIC_ASSERT(!NumTraits<TYPE>::IsInteger, THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES)
 
 
-// static assertion failing if it is guaranteed at compile-time that the two matrix expression types have different sizes
+// static assertion failing if it is guaranteed at compile-time that the two A expression types have different sizes
 #define EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
   EIGEN_STATIC_ASSERT( \
      EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1),\

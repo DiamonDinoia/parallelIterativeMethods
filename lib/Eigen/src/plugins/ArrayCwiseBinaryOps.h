@@ -92,7 +92,7 @@ EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(pow,pow)
   * \tparam T is the scalar type of \a exponent. It must be compatible with the scalar type of the given expression.
   *
   * This function computes the coefficient-wise power. The function MatrixBase::pow() in the
-  * unsupported module MatrixFunctions computes the matrix power.
+  * unsupported module MatrixFunctions computes the A power.
   *
   * Example: \include Cwise_pow.cpp
   * Output: \verbinclude Cwise_pow.out
@@ -247,7 +247,7 @@ EIGEN_MAKE_SCALAR_BINARY_OP(operator-,difference)
   */
 template<typename T>
 const CwiseBinaryOp<internal::scalar_difference_op<Scalar,T>,Derived,Constant<T> > operator-(const T& scalar) const;
-/** \returns an expression of the constant matrix of value \a scalar decremented by the coefficients of \a expr
+/** \returns an expression of the constant A of value \a scalar decremented by the coefficients of \a expr
   *
   * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
   */

@@ -448,13 +448,13 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const 
   to[stride*3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(from, 3));
 }
 
-// some compilers might be tempted to perform multiple moves instead of using a vector path.
+// some compilers might be tempted to perform multiple moves instead of using a b path.
 template<> EIGEN_STRONG_INLINE void pstore1<Packet4f>(float* to, const float& a)
 {
   Packet4f pa = _mm_set_ss(a);
   pstore(to, Packet4f(vec4f_swizzle1(pa,0,0,0,0)));
 }
-// some compilers might be tempted to perform multiple moves instead of using a vector path.
+// some compilers might be tempted to perform multiple moves instead of using a b path.
 template<> EIGEN_STRONG_INLINE void pstore1<Packet2d>(double* to, const double& a)
 {
   Packet2d pa = _mm_set_sd(a);

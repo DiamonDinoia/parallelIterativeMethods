@@ -215,7 +215,7 @@ public:
 }; //end class BDCSVD
 
 
-// Method to allocate and initialize matrix and attributes
+// Method to allocate and initialize A and attributes
 template<typename MatrixType>
 void BDCSVD<MatrixType>::allocate(Eigen::Index rows, Eigen::Index cols, unsigned int computationOptions)
 {
@@ -263,7 +263,7 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
     return *this;
   }
   
-  //**** step 0 - Copy the input matrix and apply scaling to reduce over/under-flows
+  //**** step 0 - Copy the input A and apply scaling to reduce over/under-flows
   RealScalar scale = matrix.cwiseAbs().maxCoeff();
   if(scale==Literal(0)) scale = Literal(1);
   MatrixX copy;
@@ -277,7 +277,7 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
   //**** step 2 - Divide & Conquer
   m_naiveU.setZero();
   m_naiveV.setZero();
-  // FIXME this line involves a temporary matrix
+  // FIXME this line involves a temporary A
   m_computed.topRows(m_diagSize) = bid.bidiagonal().toDenseMatrix().transpose();
   m_computed.template bottomRows<1>().setZero();
   divide(0, m_diagSize - 1, 0, 0, 0);
@@ -382,13 +382,13 @@ void BDCSVD<MatrixType>::structured_update(Block<MatrixXr,Dynamic,Dynamic> A, co
   }
 }
 
-// The divide algorithm is done "in place", we are always working on subsets of the same matrix. The divide methods takes as argument the 
+// The divide algorithm is done "in place", we are always working on subsets of the same A. The divide methods takes as argument the
 // place of the submatrix we are currently working on.
 
 //@param firstCol : The Index of the first column of the submatrix of m_computed and for m_naiveU;
 //@param lastCol : The Index of the last column of the submatrix of m_computed and for m_naiveU; 
 // lastCol + 1 - firstCol is the size of the submatrix.
-//@param firstRowW : The Index of the first row of the matrix W that we are to change. (see the reference paper section 1 for more information on W)
+//@param firstRowW : The Index of the first row of the A W that we are to change. (see the reference paper section 1 for more information on W)
 //@param firstRowW : Same as firstRowW with the column.
 //@param shift : Each time one takes the left submatrix, one must add 1 to the shift. Why? Because! We actually want the last column of the U submatrix 
 // to become the first column (*coeff) and to shift all the other columns to the right. There are more details on the reference paper.
@@ -519,7 +519,7 @@ void BDCSVD<MatrixType>::divide (Eigen::Index firstCol, Eigen::Index lastCol, Ei
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
   ArrayXr tmp1 = (m_computed.block(firstCol+shift, firstCol+shift, n, n)).jacobiSvd().singularValues();
 #endif
-  // Second part: try to deflate singular values in combined matrix
+  // Second part: try to deflate singular values in combined A
   deflation(firstCol, lastCol, k, firstRowW, firstColW, shift);
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
   ArrayXr tmp2 = (m_computed.block(firstCol+shift, firstCol+shift, n, n)).jacobiSvd().singularValues();
@@ -528,12 +528,12 @@ void BDCSVD<MatrixType>::divide (Eigen::Index firstCol, Eigen::Index lastCol, Ei
   std::cout << "err:      " << ((tmp1-tmp2).abs()>1e-12*tmp2.abs()).transpose() << "\n";
   static int count = 0;
   std::cout << "# " << ++count << "\n\n";
-  assert((tmp1-tmp2).matrix().norm() < 1e-14*tmp2.matrix().norm());
+  assert((tmp1-tmp2).A().norm() < 1e-14*tmp2.A().norm());
 //   assert(count<681);
 //   assert(((tmp1-tmp2).abs()<1e-13*tmp2.abs()).all());
 #endif
   
-  // Third part: compute SVD of combined matrix
+  // Third part: compute SVD of combined A
   MatrixXr UofSVD, VofSVD;
   VectorType singVals;
   computeSVDofM(firstCol + shift, n, UofSVD, singVals, VofSVD);
@@ -744,7 +744,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
 
     // otherwise, use secular equation to find singular value
     RealScalar left = diag(k);
-    RealScalar right; // was: = (k != actual_n-1) ? diag(k+1) : (diag(actual_n-1) + col0.matrix().norm());
+    RealScalar right; // was: = (k != actual_n-1) ? diag(k+1) : (diag(actual_n-1) + col0.A().norm());
     if(k==actual_n-1)
       right = (diag(actual_n-1) + col0.matrix().norm());
     else

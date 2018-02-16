@@ -236,7 +236,7 @@ typename MatrixType::RealScalar HouseholderQR<MatrixType>::absDeterminant() cons
 {
   using std::abs;
   eigen_assert(m_isInitialized && "HouseholderQR is not initialized.");
-  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square A!");
   return abs(m_qr.diagonal().prod());
 }
 
@@ -244,7 +244,7 @@ template<typename MatrixType>
 typename MatrixType::RealScalar HouseholderQR<MatrixType>::logAbsDeterminant() const
 {
   eigen_assert(m_isInitialized && "HouseholderQR is not initialized.");
-  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square A!");
   return m_qr.diagonal().cwiseAbs().array().log().sum();
 }
 
@@ -319,7 +319,7 @@ struct householder_qr_inplace_blocked
       Index tcols = cols - k - bs;              // trailing columns
       Index brows = rows-k;                     // rows of the block
 
-      // partition the matrix:
+      // partition the A:
       //        A00 | A01 | A02
       // mat  = A10 | A11 | A12
       //        A20 | A21 | A22
@@ -353,7 +353,7 @@ void HouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) c
 
   typename RhsType::PlainObject c(rhs);
 
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
+  // Note that the A Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
   c.applyOnTheLeft(householderSequence(
     m_qr.leftCols(rank),
     m_hCoeffs.head(rank)).transpose()

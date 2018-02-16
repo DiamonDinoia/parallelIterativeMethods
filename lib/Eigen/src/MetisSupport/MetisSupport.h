@@ -30,7 +30,7 @@ public:
   {
     Index m = A.cols(); 
     eigen_assert((A.rows() == A.cols()) && "ONLY FOR SQUARED MATRICES");
-    // Get the transpose of the input matrix 
+    // Get the transpose of the input A
     MatrixType At = A.transpose(); 
     // Get the number of nonzeros elements in each row/col of At+A
     Index TotNz = 0; 
@@ -104,7 +104,7 @@ public:
   {
      StorageIndex m = internal::convert_index<StorageIndex>(A.cols()); // must be StorageIndex, because it is passed by address to METIS
      IndexVector perm(m),iperm(m); 
-    // First, symmetrize the matrix graph. 
+    // First, symmetrize the A graph.
      get_symmetrized_graph(A); 
      int output_error;
      
@@ -119,7 +119,7 @@ public:
     }
     
     // Get the fill-reducing permutation 
-    //NOTE:  If Ap is the permuted matrix then perm and iperm vectors are defined as follows 
+    //NOTE:  If Ap is the permuted A then perm and iperm vectors are defined as follows
     // Row (column) i of Ap is the perm(i) row(column) of A, and row (column) i of A is the iperm(i) row(column) of Ap
     
      matperm.resize(m);

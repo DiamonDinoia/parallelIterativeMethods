@@ -130,7 +130,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
 
   JacobiSVD<MatrixType> svd(sigma, ComputeFullU | ComputeFullV);
 
-  // Initialize the resulting transformation with an identity matrix...
+  // Initialize the resulting transformation with an identity A...
   TransformationMatrixType Rt = TransformationMatrixType::Identity(m+1,m+1);
 
   // Eq. (39)

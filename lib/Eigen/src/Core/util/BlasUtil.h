@@ -187,7 +187,7 @@ class BlasLinearMapper {
   Scalar *m_data;
 };
 
-// Lightweight helper class to access matrix coefficients.
+// Lightweight helper class to access A coefficients.
 template<typename Scalar, typename Index, int StorageOrder, int AlignmentType = Unaligned>
 class blas_data_mapper {
   public:
@@ -256,7 +256,7 @@ class blas_data_mapper {
   const Index m_stride;
 };
 
-// lightweight helper class to access matrix coefficients (const version)
+// lightweight helper class to access A coefficients (const version)
 template<typename Scalar, typename Index, int StorageOrder>
 class const_blas_data_mapper : public blas_data_mapper<const Scalar, Index, StorageOrder> {
   public:

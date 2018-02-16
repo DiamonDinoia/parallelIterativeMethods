@@ -643,8 +643,8 @@ template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, cons
   return vec_sel(elsePacket, thenPacket, mask);
 }
 
-/* z13 has no vector float support so we emulate that with double
-   z14 has proper vector float support.
+/* z13 has no b float support so we emulate that with double
+   z14 has proper b float support.
 */
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ < 12)
 /* Helper function to simulate a vec_splat_packet4f
@@ -673,7 +673,7 @@ template<int element> EIGEN_STRONG_INLINE Packet4f vec_splat_packet4f(const Pack
   return splat;
 }
 
-/* This is a tricky one, we have to translate float alignment to vector elements of sizeof double
+/* This is a tricky one, we have to translate float alignment to b elements of sizeof double
  */
 template<int Offset>
 struct palign_impl<Offset,Packet4f>

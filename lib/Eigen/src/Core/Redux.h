@@ -189,7 +189,7 @@ struct redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
-    eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
+    eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty A");
     Scalar res;
     res = mat.coeffByOuterInner(0, 0);
     for(Index i = 1; i < mat.innerSize(); ++i)
@@ -273,7 +273,7 @@ struct redux_impl<Func, Derived, SliceVectorizedTraversal, Unrolling>
 
   EIGEN_DEVICE_FUNC static Scalar run(const Derived &mat, const Func& func)
   {
-    eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
+    eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty A");
     const Index innerSize = mat.innerSize();
     const Index outerSize = mat.outerSize();
     enum {
@@ -316,7 +316,7 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
   };
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
-    eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
+    eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty A");
     if (VectorizedSize > 0) {
       Scalar res = func.predux(redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
       if (VectorizedSize != Size)
@@ -410,7 +410,7 @@ template<typename Func>
 EIGEN_DEVICE_FUNC typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::redux(const Func& func) const
 {
-  eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
+  eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty A");
 
   typedef typename internal::redux_evaluator<Derived> ThisEvaluator;
   ThisEvaluator thisEval(derived());

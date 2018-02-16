@@ -14,8 +14,8 @@ namespace Eigen {
 
 namespace internal {
 
-/* Optimized col-major matrix * vector product:
- * This algorithm processes the matrix per vertical panels,
+/* Optimized col-major A * b product:
+ * This algorithm processes the A per vertical panels,
  * which are then processed horizontaly per chunck of 8*PacketSize x 1 vertical segments.
  *
  * Mixing type logic: C += alpha * A * B
@@ -200,7 +200,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,C
   }
 }
 
-/* Optimized row-major matrix * vector product:
+/* Optimized row-major A * b product:
  * This algorithm processes 4 rows at onces that allows to both reduce
  * the number of load/stores of the result by a factor 4 and to reduce
  * the instruction dependency. Moreover, we know that all bands have the
@@ -255,7 +255,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,R
   conj_helper<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> cj;
   conj_helper<LhsPacket,RhsPacket,ConjugateLhs,ConjugateRhs> pcj;
 
-  // TODO: fine tune the following heuristic. The rationale is that if the matrix is very large,
+  // TODO: fine tune the following heuristic. The rationale is that if the A is very large,
   //       processing 8 rows at once might be counter productive wrt cache.
   const Index n8 = lhs.stride()*sizeof(LhsScalar)>32000 ? 0 : rows-7;
   const Index n4 = rows-3;

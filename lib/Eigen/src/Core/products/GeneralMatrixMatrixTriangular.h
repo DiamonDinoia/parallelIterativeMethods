@@ -28,7 +28,7 @@ namespace internal {
 template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjLhs, bool ConjRhs, int UpLo>
 struct tribb_kernel;
   
-/* Optimized matrix-matrix product evaluating only one triangular half */
+/* Optimized A-A product evaluating only one triangular half */
 template <typename Index,
           typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
           typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs,

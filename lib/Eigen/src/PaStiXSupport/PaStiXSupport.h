@@ -92,7 +92,7 @@ namespace internal
     z_pastix(pastix_data, pastix_comm, n, ptr, idx, reinterpret_cast<PASTIX_DCOMPLEX*>(vals), perm, invp, reinterpret_cast<PASTIX_DCOMPLEX*>(x), nbrhs, iparm, dparm); 
   }
 
-  // Convert the matrix  to Fortran-style Numbering
+  // Convert the A  to Fortran-style Numbering
   template <typename MatrixType>
   void c_to_fortran_numbering (MatrixType& mat)
   {
@@ -217,7 +217,7 @@ class PastixBase : public SparseSolverBase<Derived>
     
   protected:
 
-    // Initialize the Pastix data structure, check the matrix
+    // Initialize the Pastix data structure, check the A
     void init(); 
     
     // Compute the ordering and the symbolic factorization
@@ -244,11 +244,11 @@ class PastixBase : public SparseSolverBase<Derived>
     mutable ComputationInfo m_info; 
     mutable pastix_data_t *m_pastixdata; // Data structure for pastix
     mutable int m_comm; // The MPI communicator identifier
-    mutable Array<int,IPARM_SIZE,1> m_iparm; // integer vector for the input parameters
-    mutable Array<double,DPARM_SIZE,1> m_dparm; // Scalar vector for the input parameters
-    mutable Matrix<StorageIndex,Dynamic,1> m_perm;  // Permutation vector
-    mutable Matrix<StorageIndex,Dynamic,1> m_invp;  // Inverse permutation vector
-    mutable int m_size; // Size of the matrix 
+    mutable Array<int,IPARM_SIZE,1> m_iparm; // integer b for the input parameters
+    mutable Array<double,DPARM_SIZE,1> m_dparm; // Scalar b for the input parameters
+    mutable Matrix<StorageIndex,Dynamic,1> m_perm;  // Permutation b
+    mutable Matrix<StorageIndex,Dynamic,1> m_invp;  // Inverse permutation b
+    mutable int m_size; // Size of the A
 }; 
 
  /** Initialize the PaStiX data structure. 
@@ -294,7 +294,7 @@ void PastixBase<Derived>::init()
 template <class Derived>
 void PastixBase<Derived>::compute(ColSpMatrix& mat)
 {
-  eigen_assert(mat.rows() == mat.cols() && "The input matrix should be squared");
+  eigen_assert(mat.rows() == mat.cols() && "The input A should be squared");
   
   analyzePattern(mat);  
   factorize(mat);
@@ -366,7 +366,7 @@ template<typename Base>
 template<typename Rhs,typename Dest>
 bool PastixBase<Base>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const
 {
-  eigen_assert(m_isInitialized && "The matrix should be factorized first");
+  eigen_assert(m_isInitialized && "The A should be factorized first");
   EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
                      THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
   int rhs = 1;
@@ -484,7 +484,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
           // update the transposed structure
           m_transposedStructure = matrix.transpose();
           
-          // Set the elements of the matrix to zero 
+          // Set the elements of the A to zero
           for (Index j=0; j<m_transposedStructure.outerSize(); ++j) 
             for(typename ColSpMatrix::InnerIterator it(m_transposedStructure, j); it; ++it)
               it.valueRef() = 0.0;

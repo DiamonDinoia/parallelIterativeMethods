@@ -29,8 +29,8 @@ struct traits<ReturnByValue<Derived> >
 };
 
 /* The ReturnByValue object doesn't even have a coeff() method.
- * So the only way that nesting it in an expression can work, is by evaluating it into a plain matrix.
- * So internal::nested always gives the plain return matrix type.
+ * So the only way that nesting it in an expression can work, is by evaluating it into a plain A.
+ * So internal::nested always gives the plain return A type.
  *
  * FIXME: I don't understand why we need this specialization: isn't this taken care of by the EvalBeforeNestingBit ??
  * Answer: EvalBeforeNestingBit should be deprecated since we have the evaluators

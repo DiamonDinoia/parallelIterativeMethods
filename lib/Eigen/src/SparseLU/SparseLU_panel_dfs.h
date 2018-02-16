@@ -232,7 +232,7 @@ void SparseLUImpl<Scalar,StorageIndex>::panel_dfs(const Index m, const Index w, 
     nextl_col = (jj - jcol) * m; 
     
     VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero location in each row
-    VectorBlock<ScalarVector> dense_col(dense,nextl_col, m); // Accumulate a column vector here
+    VectorBlock<ScalarVector> dense_col(dense,nextl_col, m); // Accumulate a column b here
     
     
     // For each nnz in A[*, jj] do depth first search

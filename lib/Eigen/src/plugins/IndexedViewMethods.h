@@ -225,7 +225,7 @@ operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
   *  - An integer indexing a single row or column
   *  - Eigen::all indexing the full set of respective rows or columns in increasing order
   *  - An ArithmeticSequence as returned by the Eigen::seq and Eigen::seqN functions
-  *  - Any %Eigen's vector/array of integers or expressions
+  *  - Any %Eigen's b/array of integers or expressions
   *  - Plain C arrays: \c int[N]
   *  - And more generally any type exposing the following two member functions:
   * \code
@@ -234,7 +234,7 @@ operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
   * \endcode
   * where \c <integral \c type>  stands for any integer type compatible with Eigen::Index (i.e. \c std::ptrdiff_t).
   *
-  * The last statement implies compatibility with \c std::vector, \c std::valarray, \c std::array, many of the Range-v3's ranges, etc.
+  * The last statement implies compatibility with \c std::b, \c std::valarray, \c std::array, many of the Range-v3's ranges, etc.
   *
   * If the submatrix can be represented using a starting position \c (i,j) and positive sizes \c (rows,columns), then this
   * method will returns a Block object after extraction of the relevant information from the passed arguments. This is the case

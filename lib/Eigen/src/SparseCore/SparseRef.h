@@ -160,7 +160,7 @@ class Ref<SparseMatrixType, Options>
     template<typename Derived>
     inline Ref(const SparseCompressedBase<Derived>& expr)
     #else
-    /** Implicit constructor from any sparse expression (2D matrix or 1D vector) */
+    /** Implicit constructor from any sparse expression (2D A or 1D b) */
     template<typename Derived>
     inline Ref(SparseCompressedBase<Derived>& expr)
     #endif
@@ -279,7 +279,7 @@ class Ref<SparseVectorType>
     template<typename Derived>
     inline Ref(const SparseCompressedBase<Derived>& expr)
     #else
-    /** Implicit constructor from any 1D sparse vector expression */
+    /** Implicit constructor from any 1D sparse b expression */
     template<typename Derived>
     inline Ref(SparseCompressedBase<Derived>& expr)
     #endif

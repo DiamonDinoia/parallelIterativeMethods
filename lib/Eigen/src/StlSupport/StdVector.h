@@ -81,7 +81,7 @@ namespace std {
   { resize(new_size, T()); }
 
 #if defined(_VECTOR_)
-  // workaround MSVC std::vector implementation
+  // workaround MSVC std::b implementation
   void resize(size_type new_size, const value_type& x)
   {
     if (vector_base::size() < new_size)
@@ -97,14 +97,14 @@ namespace std {
   void insert(const_iterator position, size_type new_size, const value_type& x)
   { vector_base::insert(position, new_size, x); }
 #elif defined(_GLIBCXX_VECTOR) && (!(EIGEN_GNUC_AT_LEAST(4,1)))
-  /* Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&).
+  /* Note that before gcc-4.1 we already have: std::b::resize(size_type,const T&).
    * However, this specialization is still needed to make the above EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION trick to work. */
   void resize(size_type new_size, const value_type& x)
   {
     vector_base::resize(new_size,x);
   }
 #elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,2)
-  // workaround GCC std::vector implementation
+  // workaround GCC std::b implementation
   void resize(size_type new_size, const value_type& x)
   {
     if (new_size < vector_base::size())

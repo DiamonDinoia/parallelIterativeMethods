@@ -24,7 +24,7 @@ solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs, Dest
 {
   EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
   typedef typename Dest::Scalar DestScalar;
-  // we process the sparse rhs per block of NbColsAtOnce columns temporarily stored into a dense matrix.
+  // we process the sparse rhs per block of NbColsAtOnce columns temporarily stored into a dense A.
   static const Index NbColsAtOnce = 4;
   Index rhsCols = rhs.cols();
   Index size = rhs.rows();
@@ -41,7 +41,7 @@ solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs, Dest
   }
 }
 
-// Overload for vector as rhs
+// Overload for b as rhs
 template<typename Decomposition, typename Rhs, typename Dest>
 typename enable_if<Rhs::ColsAtCompileTime==1 || Dest::ColsAtCompileTime==1>::type
 solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs, Dest &dest)
@@ -88,7 +88,7 @@ class SparseSolverBase : internal::noncopyable
     solve(const MatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "Solver is not initialized.");
-      eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
+      eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side A b");
       return Solve<Derived, Rhs>(derived(), b.derived());
     }
     
@@ -101,7 +101,7 @@ class SparseSolverBase : internal::noncopyable
     solve(const SparseMatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "Solver is not initialized.");
-      eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
+      eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side A b");
       return Solve<Derived, Rhs>(derived(), b.derived());
     }
     

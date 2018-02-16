@@ -15,26 +15,26 @@ namespace Iterative {
 	public:
         /**
          *
-         * @param matrix linear system matrix of max rank
-         * @param termsVector known terms vector
+         * @param A linear system matrix of max rank
+         * @param b known terms vector
          * @param iterations  max number of iterations
          * @param tolerance min error tolerated
          * @param workers  number of threads
          */
 		explicit jacobi(
-            const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix,
-			const Eigen::ColumnVector<Scalar, SIZE>& termsVector,
+            const Eigen::Matrix<Scalar, SIZE, SIZE>& A,
+			const Eigen::ColumnVector<Scalar, SIZE>& b,
 			const ulonglong iterations,
 			const Scalar tolerance,
 			const ulong workers=0L) :
-			    matrix(matrix), vector(termsVector), iterations(iterations), tolerance(tolerance),
-			        workers(workers), solution(termsVector) {
+			    A(A), b(b), iterations(iterations), tolerance(tolerance),
+			        workers(workers), solution(b) {
 
             solution.setZero();
             omp_set_num_threads(workers);
 		}
 
-		virtual Eigen::ColumnVector<Scalar, SIZE> solve() {
+		 Eigen::ColumnVector<Scalar, SIZE> solve() {
 
 			Eigen::ColumnVector<Scalar, SIZE> old_solution(solution);
 
@@ -44,8 +44,8 @@ namespace Iterative {
 				//calculate solutions parallelizing on rows
 				#pragma omp parallel for schedule(static)
 				for (long long i = 0; i < solution.size(); ++i)
-                    solution[i] = solution_find(vector[i], i);
-				//compute the error norm 1 weighted on the size of the matrix
+                    solution[i] = solution_find(b[i], i);
+				//compute the error norm 1 weighted on the size of the A
 				error += (solution - old_solution).template lpNorm<1>();
 				// check the error
 				error /= solution.size();
@@ -57,8 +57,8 @@ namespace Iterative {
 
 	protected:
 
-		const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix;
-		const Eigen::ColumnVector<Scalar, SIZE>& vector;
+		const Eigen::Matrix<Scalar, SIZE, SIZE>& A;
+		const Eigen::ColumnVector<Scalar, SIZE>& b;
 
 
 		const ulonglong iterations;
@@ -77,8 +77,8 @@ namespace Iterative {
 		* @return solution component
 		*/
 		inline Scalar solution_find(Scalar term, const ulonglong index) {
-			term -= matrix.row(index) * solution;
-			return (term + matrix(index, index) * solution[index]) / matrix(index, index);
+			term -= A.row(index) * solution;
+			return (term + A(index, index) * solution[index]) / A(index, index);
 		}
 
 	};

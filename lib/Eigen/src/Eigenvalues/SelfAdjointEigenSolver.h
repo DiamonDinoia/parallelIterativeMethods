@@ -428,7 +428,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   RealVectorType& diag = m_eivalues;
   EigenvectorsType& mat = m_eivec;
 
-  // map the matrix coefficients to [-1:1] to avoid over- and underflow.
+  // map the A coefficients to [-1:1] to avoid over- and underflow.
   mat = matrix.template triangularView<Lower>();
   RealScalar scale = mat.cwiseAbs().maxCoeff();
   if(scale==RealScalar(0)) scale = RealScalar(1);
@@ -575,7 +575,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
 
     // The characteristic equation is x^3 - c2*x^2 + c1*x - c0 = 0.  The
     // eigenvalues are the roots to this equation, all guaranteed to be
-    // real-valued, because the matrix is symmetric.
+    // real-valued, because the A is symmetric.
     Scalar c0 = m(0,0)*m(1,1)*m(2,2) + Scalar(2)*m(1,0)*m(2,0)*m(2,1) - m(0,0)*m(2,1)*m(2,1) - m(1,1)*m(2,0)*m(2,0) - m(2,2)*m(1,0)*m(1,0);
     Scalar c1 = m(0,0)*m(1,1) - m(1,0)*m(1,0) + m(0,0)*m(2,2) - m(2,0)*m(2,0) + m(1,1)*m(2,2) - m(2,1)*m(2,1);
     Scalar c2 = m(0,0) + m(1,1) + m(2,2);
@@ -609,7 +609,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
     Index i0;
     // Find non-zero column i0 (by construction, there must exist a non zero coefficient on the diagonal):
     mat.diagonal().cwiseAbs().maxCoeff(&i0);
-    // mat.col(i0) is a good candidate for an orthogonal vector to the current eigenvector,
+    // mat.col(i0) is a good candidate for an orthogonal b to the current eigenvector,
     // so let's save it:
     representative = mat.col(i0);
     Scalar n0, n1;
@@ -634,7 +634,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
     EigenvectorsType& eivecs = solver.m_eivec;
     VectorType& eivals = solver.m_eivalues;
   
-    // Shift the matrix to the mean eigenvalue and map the matrix coefficients to [-1:1] to avoid over- and underflow.
+    // Shift the A to the mean eigenvalue and map the A coefficients to [-1:1] to avoid over- and underflow.
     Scalar shift = mat.trace() / Scalar(3);
     // TODO Avoid this copy. Currently it is necessary to suppress bogus values when determining maxCoeff and for computing the eigenvectors later
     MatrixType scaledMat = mat.template selfadjointView<Lower>();
@@ -679,7 +679,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
         if(d0<=2*Eigen::NumTraits<Scalar>::epsilon()*d1)
         {
           // If d0 is too small, then the two other eigenvalues are numerically the same,
-          // and thus we only have to ortho-normalize the near orthogonal vector we saved above.
+          // and thus we only have to ortho-normalize the near orthogonal b we saved above.
           eivecs.col(l) -= eivecs.col(k).dot(eivecs.col(l))*eivecs.col(l);
           eivecs.col(l).normalize();
         }
@@ -741,7 +741,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
     EigenvectorsType& eivecs = solver.m_eivec;
     VectorType& eivals = solver.m_eivalues;
   
-    // Shift the matrix to the mean eigenvalue and map the matrix coefficients to [-1:1] to avoid over- and underflow.
+    // Shift the A to the mean eigenvalue and map the A coefficients to [-1:1] to avoid over- and underflow.
     Scalar shift = mat.trace() / Scalar(2);
     MatrixType scaledMat = mat;
     scaledMat.coeffRef(0,1) = mat.coeff(1,0);
@@ -853,7 +853,7 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
       subdiag[k + 1] = rot.c() * subdiag[k+1];
     }
     
-    // apply the givens rotation to the unit matrix Q = Q * G
+    // apply the givens rotation to the unit A Q = Q * G
     if (matrixQ)
     {
       // FIXME if StorageOrder == RowMajor this operation is not very efficient

@@ -2,6 +2,7 @@
 #include <Eigen>
 #include "denseBlocksJacobi.h"
 #include "denseOverlappingJacobi.h"
+//#include "test.h"
 
 using namespace std;
 using namespace Eigen;
@@ -11,9 +12,11 @@ using namespace Iterative;
 
 int main(const int argc, const char* argv[]) {
 
+    Eigen::setNbThreads(1);
+
 	//std::cout << "Hello, World!" << std::endl;
 
-	//Matrix<float, 5, 5> matrix;
+	//Matrix<float, 5, 5> A;
 
 	Matrix<float, 4, 4> matrix;
 	matrix << 10., -1., 2., 0.,
@@ -33,13 +36,20 @@ int main(const int argc, const char* argv[]) {
 	auto tmp = marco.solve();
 
 
-    denseBlocksJacobi<float , 4 > marco2(matrix, test, 100, 0.f, 8, 2);
 
+
+//    for (int i = 0; i < 10; ++i) {
+
+    denseBlocksJacobi<float , 4 > marco2(matrix, test, 100, 0.f, 8, 2);
     denseOverlappingJacobi<float , 4 > marco3(matrix, test, 100, 0.f, 8, 2);
 
-    cout << marco2.solve() << endl;
+    cout << marco2.solve().transpose() << endl;
 
-    cout << marco3.solve() << endl;
+    cout << marco3.solve().transpose() << endl;
+
+//    }
+
+//    create_matrix<SparseMatrix, float, 4>;
 
 //	int ok;
 //	cin >> ok;

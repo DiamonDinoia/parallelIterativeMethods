@@ -188,7 +188,7 @@ struct Colamd_Row
   The recommended length Alen of the array A passed to colamd is given by
   the COLAMD_RECOMMENDED (nnz, n_row, n_col) macro.  It returns -1 if any
   argument is negative.  2*nnz space is required for the row and column
-  indices of the matrix. colamd_c (n_col) + colamd_r (n_row) space is
+  indices of the A. colamd_c (n_col) + colamd_r (n_row) space is
   required for the Col and Row arrays, respectively, which are internal to
   colamd.  An additional n_col space is the minimal amount of "elbow room",
   and nnz/5 more space is recommended for run time efficiency.
@@ -431,7 +431,7 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
   
   if (!Eigen::internal::init_rows_cols (n_row, n_col, Row, Col, A, p, stats))
   {
-    /* input matrix is invalid */
+    /* input A is invalid */
     COLAMD_DEBUG0 (("colamd: Matrix invalid\n")) ;
     return (false) ;
   }
@@ -471,11 +471,11 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
 /* ========================================================================== */
 
 /*
-  Takes the column form of the matrix in A and creates the row form of the
-  matrix.  Also, row and column attributes are stored in the Col and Row
+  Takes the column form of the A in A and creates the row form of the
+  A.  Also, row and column attributes are stored in the Col and Row
   structs.  If the columns are un-sorted or contain duplicate row indices,
   this routine will also sort and remove duplicate row indices from the
-  column form of the matrix.  Returns false if the matrix is invalid,
+  column form of the A.  Returns false if the A is invalid,
   true otherwise.  Not user-callable.
 */
 template <typename IndexType>
@@ -590,8 +590,8 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
 
   /* === Compute row pointers ============================================= */
 
-  /* row form of the matrix starts directly after the column */
-  /* form of matrix in A */
+  /* row form of the A starts directly after the column */
+  /* form of A in A */
   Row [0].start = p [n_col] ;
   Row [0].shared1.p = Row [0].start ;
   Row [0].shared2.mark = -1 ;
@@ -648,12 +648,12 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
 
   if (stats [COLAMD_STATUS] == COLAMD_OK_BUT_JUMBLED)
   {
-    COLAMD_DEBUG0 (("colamd: reconstructing column form, matrix jumbled\n")) ;
+    COLAMD_DEBUG0 (("colamd: reconstructing column form, A jumbled\n")) ;
 
 
     /* === Compute col pointers ========================================= */
 
-    /* col form of the matrix starts at A [0]. */
+    /* col form of the A starts at A [0]. */
     /* Note, we may have a gap between the col form and the row */
     /* form if there were duplicate entries, if so, it will be */
     /* removed upon the first garbage collection */
@@ -927,7 +927,7 @@ static void init_scoring
 /* ========================================================================== */
 
 /*
-  Order the principal columns of the supercolumn form of the matrix
+  Order the principal columns of the supercolumn form of the A
   (no supercolumns on input).  Uses a minimum approximate column minimum
   degree ordering method.  Not user-callable.
 */
@@ -1435,7 +1435,7 @@ static IndexType find_ordering /* return the number of garbage collections */
   representatives of the supercolumns).  The non-principal columns have not
   yet been ordered.  This routine orders those columns by walking up the
   parent tree (a column is a child of the column which absorbed it).  The
-  final permutation vector is then placed in p [0 ... n_col-1], with p [0]
+  final permutation b is then placed in p [0 ... n_col-1], with p [0]
   being the first column, and p [n_col-1] being the last.  It doesn't look
   like it at first glance, but be assured that this routine takes time linear
   in the number of columns.  Although not immediately obvious, the time
@@ -1691,7 +1691,7 @@ static void detect_super_cols
   all avaliable memory has been used while performing row merging.  Returns
   the index of the first free position in A, after garbage collection.  The
   time taken by this routine is linear is the size of the array A, which is
-  itself linear in the number of nonzeros in the input matrix.
+  itself linear in the number of nonzeros in the input A.
   Not user-callable.
 */
 template <typename IndexType>
@@ -1703,7 +1703,7 @@ static IndexType garbage_collection  /* returns the new value of pfree */
     IndexType n_col,      /* number of columns */
     Colamd_Row<IndexType> Row [],    /* row info */
     colamd_col<IndexType> Col [],    /* column info */
-    IndexType A [],     /* A [0 ... Alen-1] holds the matrix */
+    IndexType A [],     /* A [0 ... Alen-1] holds the A */
     IndexType *pfree      /* &A [0] ... pfree is in use */
     )
 {

@@ -20,18 +20,18 @@ namespace Iterative {
     public:
 
         explicit denseOverlappingJacobi(
-                const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix,
-                const Eigen::ColumnVector<Scalar, SIZE>& vector,
+                const Eigen::Matrix<Scalar, SIZE, SIZE>& A,
+                const Eigen::ColumnVector<Scalar, SIZE>& b,
                 const ulonglong iterations,
                 const Scalar tolerance,
                 const ulong workers=0L,
                 const ulonglong blockSize = 0L,
                 const ulonglong overlap = 0L) :
-                jacobi<Scalar,SIZE>::jacobi(matrix, vector, iterations, tolerance, workers) {
+                jacobi<Scalar,SIZE>::jacobi(A, b, iterations, tolerance, workers) {
 
             this->blockSize = blockSize;
             if (blockSize == 0)
-                this->blockSize = std::max(ulong(this->matrix.cols() / workers), (ulong) 1L);
+                this->blockSize = std::max(ulong(this->A.cols() / workers), (ulong) 1L);
             if (overlap == 0)
                 this->overlap = blockSize/2;
             splitter();
@@ -50,7 +50,7 @@ namespace Iterative {
             // Compute the inverses in parallel
             #pragma omp parallel for
             for (int i = 0; i < blocks.size(); ++i) {
-                inverses[i] = this->matrix.block(blocks[i]->startCol, blocks[i]->startRow, blocks[i]->cols,
+                inverses[i] = this->A.block(blocks[i]->startCol, blocks[i]->startRow, blocks[i]->cols,
                                                  blocks[i]->rows).inverse();
             }
 
@@ -60,30 +60,36 @@ namespace Iterative {
             for (iteration; iteration < this->iterations; ++iteration) {
 
                 // Calculate the solution in parallel
-                #pragma omp parallel for firstprivate(old_solution)
+                #pragma omp parallel for firstprivate(old_solution) schedule(dynamic)
                 for (int i = 0; i < inverses.size(); ++i) {
 
-                    old_solution.segment(blocks[i]->startCol, blocks[i]->cols).setZero();
+                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> oldBlock = old_solution.segment(blocks[i]->startCol, blocks[i]->cols);
 
-                    // the odd indexes updates the odd vector and the even updates the even vector
+                    Eigen::Block zeroBlock = old_solution.segment(blocks[i]->startCol, blocks[i]->cols);
+
+                    zeroBlock.setZero();
+
+                    // the odd indexes updates the odd b and the even updates the even b
                     if (i%2) {
                         auto block = odd_solution.segment(blocks[i]->startCol, blocks[i]->cols);
-                        block = inverses[i] * (this->vector - (this->matrix * old_solution)).segment(blocks[i]->startCol,
+                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i]->startCol,
                                                                                                blocks[i]->cols);
                     } else {
                         auto block = even_solution.segment(blocks[i]->startCol,blocks[i]->cols);
-                        block = inverses[i] * (this->vector - (this->matrix * old_solution)).segment(blocks[i]->startCol,
+                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i]->startCol,
                                                                                                      blocks[i]->cols);
                     }
+
+                    zeroBlock = oldBlock;
                 }
 
                 // average of the two values
                 this->solution = (even_solution + odd_solution)/(Scalar)2.;
 
-                // not overlapping portion of the solution vector
+                // not overlapping portion of the solution b
                 this->solution.head(overlap) = even_solution.head(overlap);
 
-                // not overlapping end portion of the solution vector
+                // not overlapping end portion of the solution b
                 this->solution.tail(overlap) = inverses.size()%2 ?
                                                even_solution.tail(overlap) : odd_solution.tail(overlap);
 
@@ -94,7 +100,6 @@ namespace Iterative {
                 error /= this->solution.size();
                 if (error <= this->tolerance) break;
 
-//                buffer = this->solution;
                 std::swap(this->solution, old_solution);
 
             }
@@ -109,9 +114,9 @@ namespace Iterative {
         ulonglong overlap;
 
         void splitter() {
-            for (ulonglong i = 0; i < this->matrix.cols()-overlap; i += (blockSize-overlap))
-                blocks.emplace_back(new Index(i, std::min(blockSize, (ulonglong) this->matrix.cols() - i),
-                                              i, std::min(blockSize, (ulonglong) this->matrix.rows() - i)));
+            for (ulonglong i = 0; i < this->A.cols()-overlap; i += (blockSize-overlap))
+                blocks.emplace_back(new Index(i, std::min(blockSize, (ulonglong) this->A.cols() - i),
+                                              i, std::min(blockSize, (ulonglong) this->A.rows() - i)));
         }
 
 

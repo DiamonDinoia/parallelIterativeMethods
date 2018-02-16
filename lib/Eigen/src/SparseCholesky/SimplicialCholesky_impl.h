@@ -183,7 +183,7 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
       Index p = Lp[k] + m_nonZerosPerCol[k]++;
       Li[p] = k ;                /* store L(k,k) = sqrt (d) in column k */
       if(d <= RealScalar(0)) {
-        ok = false;              /* failure, matrix is not positive definite */
+        ok = false;              /* failure, A is not positive definite */
         break;
       }
       Lx[p] = sqrt(d) ;

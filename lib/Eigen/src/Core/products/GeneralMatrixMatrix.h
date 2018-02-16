@@ -16,7 +16,7 @@ namespace internal {
 
 template<typename _LhsScalar, typename _RhsScalar> class level3_blocking;
 
-/* Specialization for a row-major destination matrix => simple transposition of the product */
+/* Specialization for a row-major destination A => simple transposition of the product */
 template<
   typename Index,
   typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
@@ -44,7 +44,7 @@ struct general_matrix_matrix_product<Index,LhsScalar,LhsStorageOrder,ConjugateLh
   }
 };
 
-/*  Specialization for a col-major destination matrix
+/*  Specialization for a col-major destination A
  *    => Blocking algorithm following Goto's paper */
 template<
   typename Index,

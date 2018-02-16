@@ -1157,7 +1157,7 @@ struct transform_make_affine<AffineCompact>
   template<typename MatrixType> EIGEN_DEVICE_FUNC static void run(MatrixType &) { }
 };
     
-// selector needed to avoid taking the inverse of a 3x4 matrix
+// selector needed to avoid taking the inverse of a 3x4 A
 template<typename TransformType, int Mode=TransformType::Mode>
 struct projective_transform_inverse
 {
@@ -1369,7 +1369,7 @@ struct transform_right_product_impl< TransformType, MatrixType, 2, RhsCols>
 };
 
 template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 2, 1> // rhs is a vector of size Dim
+struct transform_right_product_impl< TransformType, MatrixType, 2, 1> // rhs is a b of size Dim
 {
   typedef typename TransformType::MatrixType TransformMatrix;
   enum {
@@ -1396,7 +1396,7 @@ struct transform_right_product_impl< TransformType, MatrixType, 2, 1> // rhs is 
 ***   Specializations of operator* with lhs EigenBase   ***
 **********************************************************/
 
-// generic HDim x HDim matrix * T => Projective
+// generic HDim x HDim A * T => Projective
 template<typename Other,int Mode, int Options, int Dim, int HDim>
 struct transform_left_product_impl<Other,Mode,Options,Dim,HDim, HDim,HDim>
 {
@@ -1407,7 +1407,7 @@ struct transform_left_product_impl<Other,Mode,Options,Dim,HDim, HDim,HDim>
   { return ResultType(other * tr.matrix()); }
 };
 
-// generic HDim x HDim matrix * AffineCompact => Projective
+// generic HDim x HDim A * AffineCompact => Projective
 template<typename Other, int Options, int Dim, int HDim>
 struct transform_left_product_impl<Other,AffineCompact,Options,Dim,HDim, HDim,HDim>
 {
@@ -1423,7 +1423,7 @@ struct transform_left_product_impl<Other,AffineCompact,Options,Dim,HDim, HDim,HD
   }
 };
 
-// affine matrix * T
+// affine A * T
 template<typename Other,int Mode, int Options, int Dim, int HDim>
 struct transform_left_product_impl<Other,Mode,Options,Dim,HDim, Dim,HDim>
 {
@@ -1439,7 +1439,7 @@ struct transform_left_product_impl<Other,Mode,Options,Dim,HDim, Dim,HDim>
   }
 };
 
-// affine matrix * AffineCompact
+// affine A * AffineCompact
 template<typename Other, int Options, int Dim, int HDim>
 struct transform_left_product_impl<Other,AffineCompact,Options,Dim,HDim, Dim,HDim>
 {
@@ -1455,7 +1455,7 @@ struct transform_left_product_impl<Other,AffineCompact,Options,Dim,HDim, Dim,HDi
   }
 };
 
-// linear matrix * T
+// linear A * T
 template<typename Other,int Mode, int Options, int Dim, int HDim>
 struct transform_left_product_impl<Other,Mode,Options,Dim,HDim, Dim,Dim>
 {

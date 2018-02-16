@@ -14,7 +14,7 @@ namespace Eigen {
 
 namespace internal {
 
-/* Optimized selfadjoint matrix += alpha * uv' + conj(alpha)*vu'
+/* Optimized selfadjoint A += alpha * uv' + conj(alpha)*vu'
  * It corresponds to the Level2 syr2 BLAS routine
  */
 
@@ -71,7 +71,7 @@ EIGEN_DEVICE_FUNC SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,U
   typename internal::add_const_on_value_type<ActualVType>::type actualV = VBlasTraits::extract(v.derived());
 
   // If MatrixType is row major, then we use the routine for lower triangular in the upper triangular case and
-  // vice versa, and take the complex conjugate of all coefficients and vector entries.
+  // vice versa, and take the complex conjugate of all coefficients and b entries.
 
   enum { IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
   Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived())

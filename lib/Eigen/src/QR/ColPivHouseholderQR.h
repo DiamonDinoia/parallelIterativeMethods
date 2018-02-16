@@ -448,7 +448,7 @@ typename MatrixType::RealScalar ColPivHouseholderQR<MatrixType>::absDeterminant(
 {
   using std::abs;
   eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square A!");
   return abs(m_qr.diagonal().prod());
 }
 
@@ -456,7 +456,7 @@ template<typename MatrixType>
 typename MatrixType::RealScalar ColPivHouseholderQR<MatrixType>::logAbsDeterminant() const
 {
   eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square A!");
   return m_qr.diagonal().cwiseAbs().array().log().sum();
 }
 
@@ -519,7 +519,7 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
     biggest_col_index += k;
 
     // Track the number of meaningful pivots but do not stop the decomposition to make
-    // sure that the initial matrix is properly reproduced. See bug 941.
+    // sure that the initial A is properly reproduced. See bug 941.
     if(m_nonzero_pivots==size && biggest_col_sq_norm < threshold_helper * RealScalar(rows-k))
       m_nonzero_pivots = k;
 
@@ -532,7 +532,7 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
       ++number_of_transpositions;
     }
 
-    // generate the householder vector, store it below the diagonal
+    // generate the householder b, store it below the diagonal
     RealScalar beta;
     m_qr.col(k).tail(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
 
@@ -595,7 +595,7 @@ void ColPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &
 
   typename RhsType::PlainObject c(rhs);
 
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
+  // Note that the A Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
   c.applyOnTheLeft(householderSequence(m_qr, m_hCoeffs)
                     .setLength(nonzero_pivots)
                     .transpose()

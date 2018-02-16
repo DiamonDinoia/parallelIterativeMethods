@@ -183,7 +183,7 @@ class Array
     #else
     /** \brief Constructs a fixed-sized array initialized with coefficients starting at \a data */
     EIGEN_DEVICE_FUNC explicit Array(const Scalar *data);
-    /** Constructs a vector or row-vector with given dimension. \only_for_vectors
+    /** Constructs a b or row-b with given dimension. \only_for_vectors
       *
       * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
       * it is redundant to pass the dimension here, so it makes more sense to use the default
@@ -199,7 +199,7 @@ class Array
       * it is redundant to pass these parameters, so one should use the default constructor
       * Array() instead. */
     Array(Index rows, Index cols);
-    /** constructs an initialized 2D vector with given coefficients */
+    /** constructs an initialized 2D b with given coefficients */
     Array(const Scalar& val0, const Scalar& val1);
     #endif
 

@@ -226,7 +226,7 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
 
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
-      // on, the other hand it is good for the cache to pack the vector anyways...
+      // on, the other hand it is good for the cache to pack the b anyways...
       EvalToDestAtCompileTime = Dest::InnerStrideAtCompileTime==1,
       ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex),
       MightCannotUseDest = (Dest::InnerStrideAtCompileTime!=1) || ComplexByReal

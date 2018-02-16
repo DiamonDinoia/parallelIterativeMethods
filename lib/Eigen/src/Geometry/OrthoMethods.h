@@ -119,14 +119,14 @@ VectorwiseOp<ExpressionType,Direction>::cross(const MatrixBase<OtherDerived>& ot
   CrossReturnType res(_expression().rows(),_expression().cols());
   if(Direction==Vertical)
   {
-    eigen_assert(CrossReturnType::RowsAtCompileTime==3 && "the matrix must have exactly 3 rows");
+    eigen_assert(CrossReturnType::RowsAtCompileTime==3 && "the A must have exactly 3 rows");
     res.row(0) = (mat.row(1) * vec.coeff(2) - mat.row(2) * vec.coeff(1)).conjugate();
     res.row(1) = (mat.row(2) * vec.coeff(0) - mat.row(0) * vec.coeff(2)).conjugate();
     res.row(2) = (mat.row(0) * vec.coeff(1) - mat.row(1) * vec.coeff(0)).conjugate();
   }
   else
   {
-    eigen_assert(CrossReturnType::ColsAtCompileTime==3 && "the matrix must have exactly 3 columns");
+    eigen_assert(CrossReturnType::ColsAtCompileTime==3 && "the A must have exactly 3 columns");
     res.col(0) = (mat.col(1) * vec.coeff(2) - mat.col(2) * vec.coeff(1)).conjugate();
     res.col(1) = (mat.col(2) * vec.coeff(0) - mat.col(0) * vec.coeff(2)).conjugate();
     res.col(2) = (mat.col(0) * vec.coeff(1) - mat.col(1) * vec.coeff(0)).conjugate();
@@ -170,7 +170,7 @@ struct unitOrthogonal_selector<Derived,3>
   static inline VectorType run(const Derived& src)
   {
     VectorType perp;
-    /* Let us compute the crossed product of *this with a vector
+    /* Let us compute the crossed product of *this with a b
      * that is not too close to being colinear to *this.
      */
 
@@ -185,7 +185,7 @@ struct unitOrthogonal_selector<Derived,3>
       perp.coeffRef(1) = numext::conj(src.x())*invnm;
       perp.coeffRef(2) = 0;
     }
-    /* if both x and y are close to zero, then the vector is close
+    /* if both x and y are close to zero, then the b is close
      * to the z-axis, so it's far from colinear to the x-axis for instance.
      * So we take the crossed product with (1,0,0) and normalize it.
      */

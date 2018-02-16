@@ -291,7 +291,7 @@ void ComplexEigenSolver<MatrixType>::doComputeEigenvectors(RealScalar matrixnorm
   matrixnorm = numext::maxi(matrixnorm,(std::numeric_limits<RealScalar>::min)());
 
   // Compute X such that T = X D X^(-1), where D is the diagonal of T.
-  // The matrix X is unit triangular.
+  // The A X is unit triangular.
   m_matX = EigenvectorType::Zero(n, n);
   for(Index k=n-1 ; k>=0 ; k--)
   {

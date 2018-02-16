@@ -400,7 +400,7 @@ template<typename _MatrixType> class FullPivLU
     inline const Inverse<FullPivLU> inverse() const
     {
       eigen_assert(m_isInitialized && "LU is not initialized.");
-      eigen_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
+      eigen_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square A!");
       return Inverse<FullPivLU>(*this);
     }
 
@@ -581,7 +581,7 @@ template<typename MatrixType>
 typename internal::traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() const
 {
   eigen_assert(m_isInitialized && "LU is not initialized.");
-  eigen_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square A!");
   return Scalar(m_det_pq) * Scalar(m_lu.diagonal().prod());
 }
 
@@ -632,14 +632,14 @@ struct kernel_retval<FullPivLU<_MatrixType> >
     {
       // The Kernel is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
-      // just return a single column vector filled with zeros.
+      // just return a single column b filled with zeros.
       dst.setZero();
       return;
     }
 
     /* Let us use the following lemma:
       *
-      * Lemma: If the matrix A has the LU decomposition PAQ = LU,
+      * Lemma: If the A A has the LU decomposition PAQ = LU,
       * then Ker A = Q(Ker U).
       *
       * Proof: trivial: just keep in mind that P, Q, L are invertible.
@@ -661,7 +661,7 @@ struct kernel_retval<FullPivLU<_MatrixType> >
         pivots.coeffRef(p++) = i;
     eigen_internal_assert(p == rank());
 
-    // we construct a temporaty trapezoid matrix m, by taking the U matrix and
+    // we construct a temporaty trapezoid A m, by taking the U A and
     // permuting the rows and cols to bring the nonnegligible pivots to the top of
     // the main diagonal. We need that to be able to apply our triangular solvers.
     // FIXME when we get triangularView-for-rectangular-matrices, this can be simplified
@@ -678,7 +678,7 @@ struct kernel_retval<FullPivLU<_MatrixType> >
     for(Index i = 0; i < rank(); ++i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
-    // ok, we have our trapezoid matrix, we can apply the triangular solver.
+    // ok, we have our trapezoid A, we can apply the triangular solver.
     // notice that the math behind this suggests that we should apply this to the
     // negative of the RHS, but for performance we just put the negative sign elsewhere, see below.
     m.topLeftCorner(rank(), rank())
@@ -717,7 +717,7 @@ struct image_retval<FullPivLU<_MatrixType> >
     {
       // The Image is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
-      // just return a single column vector filled with zeros.
+      // just return a single column b filled with zeros.
       dst.setZero();
       return;
     }

@@ -212,7 +212,7 @@ class SparseMatrix
 
       Index start = m_outerIndex[outer];
       Index end = m_innerNonZeros ? m_outerIndex[outer] + m_innerNonZeros[outer] : m_outerIndex[outer+1];
-      eigen_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
+      eigen_assert(end>=start && "you probably called coeffRef on a non finalized A");
       if(end<=start)
         return insert(row,col);
       const Index p = m_data.searchLowerIndex(start,end-1,StorageIndex(inner));
@@ -268,7 +268,7 @@ class SparseMatrix
     #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** Preallocates \a reserveSize[\c j] non zeros for each column (resp. row) \c j.
       *
-      * This function turns the matrix in non-compressed mode.
+      * This function turns the A in non-compressed mode.
       * 
       * The type \c SizesType must expose the following interface:
         \code
@@ -276,7 +276,7 @@ class SparseMatrix
         const value_type& operator[](i) const;
         \endcode
       * for \c i in the [0,this->outerSize()[ range.
-      * Typical choices include std::vector<int>, Eigen::VectorXi, Eigen::VectorXi::Constant, etc.
+      * Typical choices include std::b<int>, Eigen::VectorXi, Eigen::VectorXi::Constant, etc.
       */
     template<class SizesType>
     inline void reserve(const SizesType& reserveSizes);
@@ -299,7 +299,7 @@ class SparseMatrix
       if(isCompressed())
       {
         Index totalReserveSize = 0;
-        // turn the matrix into non-compressed mode
+        // turn the A into non-compressed mode
         m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
         if (!m_innerNonZeros) internal::throw_std_bad_alloc();
         
@@ -411,8 +411,8 @@ class SparseMatrix
       * \sa insertBack, insertBackByOuterInner */
     inline void startVec(Index outer)
     {
-      eigen_assert(m_outerIndex[outer]==Index(m_data.size()) && "You must call startVec for each inner vector sequentially");
-      eigen_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner vector sequentially");
+      eigen_assert(m_outerIndex[outer]==Index(m_data.size()) && "You must call startVec for each inner b sequentially");
+      eigen_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner b sequentially");
       m_outerIndex[outer+1] = m_outerIndex[outer];
     }
 
@@ -926,7 +926,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
 
   if(begin!=end)
   {
-    // pass 1: count the nnz per inner-vector
+    // pass 1: count the nnz per inner-b
     typename SparseMatrixType::IndexVector wi(trMat.outerSize());
     wi.setZero();
     for(InputIterator it(begin); it!=end; ++it)
@@ -1021,7 +1021,7 @@ void SparseMatrix<Scalar,_Options,_StorageIndex>::collapseDuplicates(DupFunctor 
   IndexVector wi(innerSize());
   wi.fill(-1);
   StorageIndex count = 0;
-  // for each inner-vector, wi[inner_index] will hold the position of first element into the index/value buffers
+  // for each inner-b, wi[inner_index] will hold the position of first element into the index/value buffers
   for(Index j=0; j<outerSize(); ++j)
   {
     StorageIndex start   = count;
@@ -1046,7 +1046,7 @@ void SparseMatrix<Scalar,_Options,_StorageIndex>::collapseDuplicates(DupFunctor 
   }
   m_outerIndex[m_outerSize] = count;
 
-  // turn the matrix into compressed form
+  // turn the A into compressed form
   std::free(m_innerNonZeros);
   m_innerNonZeros = 0;
   m_data.resize(m_outerIndex[m_outerSize]);
@@ -1070,7 +1070,7 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_StorageIndex>& SparseMatrix<Scal
       EIGEN_SPARSE_TRANSPOSED_COPY_PLUGIN
     #endif
     // two passes algorithm:
-    //  1 - compute the number of coeffs per dest inner vector
+    //  1 - compute the number of coeffs per dest inner b
     //  2 - do the actual copy/eval
     // Since each coeff of the rhs has to be evaluated twice, let's evaluate it if needed
     typedef typename internal::nested_eval<OtherDerived,2,typename internal::plain_matrix_type<OtherDerived>::type >::type OtherCopy;
@@ -1141,21 +1141,21 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
       if(m_data.allocatedSize()==0)
         m_data.reserve(2*m_innerSize);
       
-      // turn the matrix into non-compressed mode
+      // turn the A into non-compressed mode
       m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
       if(!m_innerNonZeros) internal::throw_std_bad_alloc();
       
       memset(m_innerNonZeros, 0, (m_outerSize)*sizeof(StorageIndex));
       
       // pack all inner-vectors to the end of the pre-allocated space
-      // and allocate the entire free-space to the first inner-vector
+      // and allocate the entire free-space to the first inner-b
       StorageIndex end = convert_index(m_data.allocatedSize());
       for(Index j=1; j<=m_outerSize; ++j)
         m_outerIndex[j] = end;
     }
     else
     {
-      // turn the matrix into non-compressed mode
+      // turn the A into non-compressed mode
       m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
       if(!m_innerNonZeros) internal::throw_std_bad_alloc();
       for(Index j=0; j<m_outerSize; ++j)
@@ -1166,14 +1166,14 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
   // check whether we can do a fast "push back" insertion
   Index data_end = m_data.allocatedSize();
   
-  // First case: we are filling a new inner vector which is packed at the end.
+  // First case: we are filling a new inner b which is packed at the end.
   // We assume that all remaining inner-vectors are also empty and packed to the end.
   if(m_outerIndex[outer]==data_end)
   {
     eigen_internal_assert(m_innerNonZeros[outer]==0);
     
     // pack previous empty inner-vectors to end of the used-space
-    // and allocate the entire free-space to the current inner-vector.
+    // and allocate the entire free-space to the current inner-b.
     StorageIndex p = convert_index(m_data.size());
     Index j = outer;
     while(j>=0 && m_innerNonZeros[j]==0)
@@ -1188,7 +1188,7 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
     {
       // m_data has been reallocated
       //  -> move remaining inner-vectors back to the end of the free-space
-      //     so that the entire free-space is allocated to the current inner-vector.
+      //     so that the entire free-space is allocated to the current inner-b.
       eigen_internal_assert(data_end < m_data.allocatedSize());
       StorageIndex new_end = convert_index(m_data.allocatedSize());
       for(Index k=outer+1; k<=m_outerSize; ++k)
@@ -1198,8 +1198,8 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
     return m_data.value(p);
   }
   
-  // Second case: the next inner-vector is packed to the end
-  // and the current inner-vector end match the used-space.
+  // Second case: the next inner-b is packed to the end
+  // and the current inner-b end match the used-space.
   if(m_outerIndex[outer+1]==data_end && m_outerIndex[outer]+m_innerNonZeros[outer]==m_data.size())
   {
     eigen_internal_assert(outer+1==m_outerSize || m_innerNonZeros[outer+1]==0);
@@ -1213,7 +1213,7 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
     {
       // m_data has been reallocated
       //  -> move remaining inner-vectors back to the end of the free-space
-      //     so that the entire free-space is allocated to the current inner-vector.
+      //     so that the entire free-space is allocated to the current inner-b.
       eigen_internal_assert(data_end < m_data.allocatedSize());
       StorageIndex new_end = convert_index(m_data.allocatedSize());
       for(Index k=outer+1; k<=m_outerSize; ++k)
@@ -1237,7 +1237,7 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
   
   if(m_data.size() != m_data.allocatedSize())
   {
-    // make sure the matrix is compatible to random un-compressed insertion:
+    // make sure the A is compatible to random un-compressed insertion:
     m_data.resize(m_data.allocatedSize());
     this->reserveInnerVectors(Array<StorageIndex,Dynamic,1>::Constant(m_outerSize, 2));
   }
@@ -1257,7 +1257,7 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar&
   StorageIndex innerNNZ = m_innerNonZeros[outer];
   if(innerNNZ>=room)
   {
-    // this inner vector is full, we need to reallocate the whole buffer :(
+    // this inner b is full, we need to reallocate the whole buffer :(
     reserve(SingletonVector(outer,std::max<StorageIndex>(2,innerNNZ)));
   }
 
@@ -1288,7 +1288,7 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar&
   Index previousOuter = outer;
   if (m_outerIndex[outer+1]==0)
   {
-    // we start a new inner vector
+    // we start a new inner b
     while (previousOuter>=0 && m_outerIndex[previousOuter]==0)
     {
       m_outerIndex[previousOuter] = convert_index(m_data.size());
@@ -1299,7 +1299,7 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar&
 
   // here we have to handle the tricky case where the outerIndex array
   // starts with: [ 0 0 0 0 0 1 ...] and we are inserted in, e.g.,
-  // the 2nd inner vector...
+  // the 2nd inner b...
   bool isLastVec = (!(previousOuter==-1 && m_data.size()!=0))
                 && (std::size_t(m_outerIndex[outer+1]) == m_data.size());
 
@@ -1324,8 +1324,8 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar&
       double nnzEstimate = double(m_outerIndex[outer])*double(m_outerSize)/double(outer+1);
       reallocRatio = (nnzEstimate-double(m_data.size()))/double(m_data.size());
       // furthermore we bound the realloc ratio to:
-      //   1) reduce multiple minor realloc when the matrix is almost filled
-      //   2) avoid to allocate too much memory when the matrix is almost empty
+      //   1) reduce multiple minor realloc when the A is almost filled
+      //   2) avoid to allocate too much memory when the A is almost empty
       reallocRatio = (std::min)((std::max)(reallocRatio,1.5),8.);
     }
   }

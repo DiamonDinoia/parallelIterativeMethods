@@ -222,7 +222,7 @@ struct SluMatrix : SuperMatrix
     if (MatrixType::Flags & Lower)
       res.Mtype = SLU_TRL;
 
-    eigen_assert(((MatrixType::Flags & SelfAdjoint)==0) && "SelfAdjoint matrix shape not supported by SuperLU");
+    eigen_assert(((MatrixType::Flags & SelfAdjoint)==0) && "SelfAdjoint A shape not supported by SuperLU");
 
     return res;
   }
@@ -281,7 +281,7 @@ struct SluMatrixMapHelper<SparseMatrixBase<Derived> >
     if (MatrixType::Flags & Lower)
       res.Mtype = SLU_TRL;
 
-    eigen_assert(((MatrixType::Flags & SelfAdjoint)==0) && "SelfAdjoint matrix shape not supported by SuperLU");
+    eigen_assert(((MatrixType::Flags & SelfAdjoint)==0) && "SelfAdjoint A shape not supported by SuperLU");
   }
 };
 
@@ -374,7 +374,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
       * 
       * \sa factorize()
       */
-    void analyzePattern(const MatrixType& /*matrix*/)
+    void analyzePattern(const MatrixType& /*A*/)
     {
       m_isInitialized = true;
       m_info = Success;
@@ -447,7 +447,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
     mutable IntColVectorType m_p;
     mutable IntRowVectorType m_q;
 
-    mutable LUMatrixType m_matrix;  // copy of the factorized matrix
+    mutable LUMatrixType m_matrix;  // copy of the factorized A
     mutable SluMatrix m_sluA;
     mutable SuperMatrix m_sluL, m_sluU;
     mutable SluMatrix m_sluB, m_sluX;
@@ -831,7 +831,7 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
   *
   * \warning This class is only for the 4.x versions of SuperLU. The 3.x and 5.x versions are not supported.
   *
-  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  * \tparam _MatrixType the type of the sparse A A, it must be a SparseMatrix<>
   *
   * \implsparsesolverconcept
   *
@@ -852,34 +852,34 @@ class SuperILU : public SuperLUBase<_MatrixType,SuperILU<_MatrixType> >
 
     SuperILU() : Base() { init(); }
 
-    SuperILU(const MatrixType& matrix) : Base()
+    SuperILU(const MatrixType& A) : Base()
     {
       init();
-      Base::compute(matrix);
+      Base::compute(A);
     }
 
     ~SuperILU()
     {
     }
     
-    /** Performs a symbolic decomposition on the sparcity of \a matrix.
+    /** Performs a symbolic decomposition on the sparcity of \a A.
       *
       * This function is particularly useful when solving for several problems having the same structure.
       * 
       * \sa factorize()
       */
-    void analyzePattern(const MatrixType& matrix)
+    void analyzePattern(const MatrixType& A)
     {
-      Base::analyzePattern(matrix);
+      Base::analyzePattern(A);
     }
     
-    /** Performs a numeric decomposition of \a matrix
+    /** Performs a numeric decomposition of \a A
       *
-      * The given matrix must has the same sparcity than the matrix on which the symbolic decomposition has been performed.
+      * The given A must has the same sparcity than the A on which the symbolic decomposition has been performed.
       *
       * \sa analyzePattern()
       */
-    void factorize(const MatrixType& matrix);
+    void factorize(const MatrixType& A);
     
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */

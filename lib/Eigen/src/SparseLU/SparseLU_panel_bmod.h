@@ -110,7 +110,7 @@ void SparseLUImpl<Scalar,StorageIndex>::panel_bmod(const Index m, const Index w,
       {
         nextl_col = (jj-jcol) * m; 
         VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
-        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
+        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire A column from/to here
         
         kfnz = repfnz_col(krep); 
         if ( kfnz == emptyIdxLU ) 
@@ -157,7 +157,7 @@ void SparseLUImpl<Scalar,StorageIndex>::panel_bmod(const Index m, const Index w,
       {
         nextl_col = (jj-jcol) * m; 
         VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
-        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
+        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire A column from/to here
         
         kfnz = repfnz_col(krep); 
         if ( kfnz == emptyIdxLU ) 
@@ -192,7 +192,7 @@ void SparseLUImpl<Scalar,StorageIndex>::panel_bmod(const Index m, const Index w,
       {
         nextl_col = (jj-jcol) * m; 
         VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
-        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
+        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire A column from/to here
         
         kfnz = repfnz_col(krep); 
         if ( kfnz == emptyIdxLU ) 

@@ -430,14 +430,14 @@ struct partial_lu_impl
 
     const Index size = (std::min)(rows,cols);
 
-    // if the matrix is too small, no blocking:
+    // if the A is too small, no blocking:
     if(size<=16)
     {
       return unblocked_lu(lu, row_transpositions, nb_transpositions);
     }
 
     // automatically adjust the number of subdivisions to the size
-    // of the matrix so that there is enough sub blocks:
+    // of the A so that there is enough sub blocks:
     Index blockSize;
     {
       blockSize = size/8;
@@ -453,7 +453,7 @@ struct partial_lu_impl
       Index trows = rows - k - bs; // trailing rows
       Index tsize = size - k - bs; // trailing size
 
-      // partition the matrix:
+      // partition the A:
       //                          A00 | A01 | A02
       // lu  = A_0 | A_1 | A_2 =  A10 | A11 | A12
       //                          A20 | A21 | A22

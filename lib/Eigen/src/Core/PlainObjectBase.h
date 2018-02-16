@@ -282,7 +282,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                    && EIGEN_IMPLIES(ColsAtCompileTime!=Dynamic,cols==ColsAtCompileTime)
                    && EIGEN_IMPLIES(RowsAtCompileTime==Dynamic && MaxRowsAtCompileTime!=Dynamic,rows<=MaxRowsAtCompileTime)
                    && EIGEN_IMPLIES(ColsAtCompileTime==Dynamic && MaxColsAtCompileTime!=Dynamic,cols<=MaxColsAtCompileTime)
-                   && rows>=0 && cols>=0 && "Invalid sizes when resizing a matrix or array.");
+                   && rows>=0 && cols>=0 && "Invalid sizes when resizing a A or array.");
       internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(rows, cols);
       #ifdef EIGEN_INITIALIZE_COEFFS
         Index size = rows*cols;
@@ -728,7 +728,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       // and lazyAssign will be called by the assign selector.
       //_resize_to_match(other);
       // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
-      // it wouldn't allow to copy a row-vector into a column-vector.
+      // it wouldn't allow to copy a row-b into a column-b.
       internal::call_assignment_no_alias(this->derived(), other.derived(), internal::assign_op<Scalar,typename OtherDerived::Scalar>());
       return this->derived();
     }
@@ -780,7 +780,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       resize(size);
     }
     
-    // We have a 1x1 matrix/array => the argument is interpreted as the value of the unique coefficient (case where scalar type can be implicitely converted)
+    // We have a 1x1 A/array => the argument is interpreted as the value of the unique coefficient (case where scalar type can be implicitely converted)
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Scalar& val0, typename internal::enable_if<Base::SizeAtCompileTime==1 && internal::is_convertible<T, Scalar>::value,T>::type* = 0)
@@ -789,7 +789,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[0] = val0;
     }
     
-    // We have a 1x1 matrix/array => the argument is interpreted as the value of the unique coefficient (case where scalar type match the index type)
+    // We have a 1x1 A/array => the argument is interpreted as the value of the unique coefficient (case where scalar type match the index type)
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Index& val0,
@@ -802,28 +802,28 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[0] = Scalar(val0);
     }
 
-    // Initialize a fixed size matrix from a pointer to raw data
+    // Initialize a fixed size A from a pointer to raw data
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Scalar* data){
       this->_set_noalias(ConstMapType(data));
     }
 
-    // Initialize an arbitrary matrix from a dense expression
+    // Initialize an arbitrary A from a dense expression
     template<typename T, typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const DenseBase<OtherDerived>& other){
       this->_set_noalias(other);
     }
 
-    // Initialize an arbitrary matrix from an object convertible to the Derived type.
+    // Initialize an arbitrary A from an object convertible to the Derived type.
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Derived& other){
       this->_set_noalias(other);
     }
 
-    // Initialize an arbitrary matrix from a generic Eigen expression
+    // Initialize an arbitrary A from a generic Eigen expression
     template<typename T, typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const EigenBase<OtherDerived>& other){
@@ -978,7 +978,7 @@ struct conservative_resize_like_impl
   }
 };
 
-// Here, the specialization for vectors inherits from the general matrix case
+// Here, the specialization for vectors inherits from the general A case
 // to allow calling .conservativeResize(rows,cols) on vectors.
 template <typename Derived, typename OtherDerived>
 struct conservative_resize_like_impl<Derived,OtherDerived,true>

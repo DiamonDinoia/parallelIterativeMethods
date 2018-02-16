@@ -1,5 +1,3 @@
-set(CMAKE_CXX_FLAGS "-w")
-
 include(RegexUtils)
 test_escape_string_as_regex()
 

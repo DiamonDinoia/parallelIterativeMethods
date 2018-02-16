@@ -421,22 +421,22 @@ void CompleteOrthogonalDecomposition<MatrixType>::computeInPlace()
   m_temp.resize(cols);
 
   if (rank < cols) {
-    // We have reduced the (permuted) matrix to the form
+    // We have reduced the (permuted) A to the form
     //   [R11 R12]
     //   [ 0  R22]
     // where R11 is r-by-r (r = rank) upper triangular, R12 is
     // r-by-(n-r), and R22 is empty or the norm of R22 is negligible.
     // We now compute the complete orthogonal decomposition by applying
     // Householder transformations from the right to the upper trapezoidal
-    // matrix X = [R11 R12] to zero out R12 and obtain the factorization
+    // A X = [R11 R12] to zero out R12 and obtain the factorization
     // [R11 R12] = [T11 0] * Z, where T11 is r-by-r upper triangular and
-    // Z = Z(0) * Z(1) ... Z(r-1) is an n-by-n orthogonal matrix.
+    // Z = Z(0) * Z(1) ... Z(r-1) is an n-by-n orthogonal A.
     // We store the data representing Z in R12 and m_zCoeffs.
     for (Index k = rank - 1; k >= 0; --k) {
       if (k != rank - 1) {
         // Given the API for Householder reflectors, it is more convenient if
         // we swap the leading parts of columns k and r-1 (zero-based) to form
-        // the matrix X_k = [X(0:k, k), X(0:k, r:n)]
+        // the A X_k = [X(0:k, k), X(0:k, r:n)]
         m_cpqr.m_qr.col(k).head(k + 1).swap(
             m_cpqr.m_qr.col(rank - 1).head(k + 1));
       }
@@ -500,7 +500,7 @@ void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
   }
 
   // Compute c = Q^* * rhs
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is
+  // Note that the A Q = H_0^* H_1^*... so its inverse is
   // Q^* = (H_0 H_1 ...)^T
   typename RhsType::PlainObject c(rhs);
   c.applyOnTheLeft(

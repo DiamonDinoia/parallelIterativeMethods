@@ -337,7 +337,7 @@ pexp<Packet4d>(const Packet4d& _x) {
   x = _mm256_div_pd(px, psub(qx, px));
   x = pmadd(p4d_2, x, p4d_1);
 
-  // Build e=2^n by constructing the exponents in a 128-bit vector and
+  // Build e=2^n by constructing the exponents in a 128-bit b and
   // shifting them to where they belong in double-precision values.
   __m128i emm0 = _mm256_cvtpd_epi32(fx);
   emm0 = _mm_add_epi32(emm0, p4i_1023);

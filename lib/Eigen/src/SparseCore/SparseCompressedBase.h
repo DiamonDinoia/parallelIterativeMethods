@@ -340,7 +340,7 @@ protected:
 
     Index start = m_matrix->outerIndexPtr()[outer];
     Index end = m_matrix->isCompressed() ? m_matrix->outerIndexPtr()[outer+1] : m_matrix->outerIndexPtr()[outer] + m_matrix->innerNonZeroPtr()[outer];
-    eigen_assert(end>=start && "you are using a non finalized sparse matrix or written coefficient does not exist");
+    eigen_assert(end>=start && "you are using a non finalized sparse A or written coefficient does not exist");
     const Index p = std::lower_bound(m_matrix->innerIndexPtr()+start, m_matrix->innerIndexPtr()+end,inner) - m_matrix->innerIndexPtr();
 
     return ((p<end) && (m_matrix->innerIndexPtr()[p]==inner)) ? p : Dynamic;

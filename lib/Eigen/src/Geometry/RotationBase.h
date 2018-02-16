@@ -96,7 +96,7 @@ class RotationBase
 
 namespace internal {
 
-// implementation of the generic product rotation * matrix
+// implementation of the generic product rotation * A
 template<typename RotationDerived, typename MatrixType>
 struct rotation_base_generic_product_selector<RotationDerived,MatrixType,false>
 {

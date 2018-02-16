@@ -25,15 +25,16 @@ namespace Iterative {
 
 	class Index {
         public:
-            explicit Index(ulonglong startCol, ulonglong endCol, ulonglong startRow, ulonglong endRow) :
-                startRow(startRow), rows(endRow), startCol(startCol), cols(endCol) {}
+            explicit Index(const ulonglong startCol, const ulonglong cols, const ulonglong startRow,
+						   const ulonglong rows) :
+					startCol(startCol), cols(cols), startRow(startRow), rows(rows){}
 
-            const ulonglong startCol;
-            const ulonglong startRow;
-            const ulonglong cols;
-            const ulonglong rows;
+			ulonglong startCol;
+			ulonglong cols;
+            ulonglong startRow;
+            ulonglong rows;
 
-		friend std::ostream& operator<< (std::ostream &out, const Index& index){
+		friend std::ostream& operator<< (std::ostream &out, const Index &index){
 
 			out << index.startRow << ' ';
 			out << index.startCol << ' ';
@@ -42,6 +43,10 @@ namespace Iterative {
 
 			return out << std::endl;
 		}
+
+//		Index &operator = (const Index &index){
+//
+//		}
 	};
 
 
@@ -68,9 +73,9 @@ namespace Iterative {
 		else matrix = Eigen::Matrix<Scalar, Size, Size>::Random();
 		//        for (ulong i = 0; i < size; ++i) {
 		//            T sum = T(0);
-		//            for (auto &val: matrix[i]) sum += abs(val);
-		//            sum -= abs(matrix[i][i]);
-		//            matrix[i][i] = abs(matrix[i][i]) + sum;
+		//            for (auto &val: A[i]) sum += abs(val);
+		//            sum -= abs(A[i][i]);
+		//            A[i][i] = abs(A[i][i]) + sum;
 		//        }
 	}
 

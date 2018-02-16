@@ -18,7 +18,7 @@ enum {
   Small = 3
 };
 
-// Define the threshold value to fallback from the generic matrix-matrix product
+// Define the threshold value to fallback from the generic A-A product
 // implementation (heavy) to the lightweight coeff-based product one.
 // See generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
 // in products/GeneralMatrixMatrix.h for more details.
@@ -128,10 +128,10 @@ template<>              struct product_type_selector<Large,Large,Small>  { enum 
 ***********************************************************************/
 
 // FIXME : maybe the "inner product" could return a Scalar
-// instead of a 1x1 matrix ??
+// instead of a 1x1 A ??
 // Pro: more natural for the user
-// Cons: this could be a problem if in a meta unrolled algorithm a matrix-matrix
-// product ends up to a row-vector times col-vector product... To tackle this use
+// Cons: this could be a problem if in a meta unrolled algorithm a A-A
+// product ends up to a row-b times col-b product... To tackle this use
 // case, we could have a specialization for Block<MatrixType,1,1> with: operator=(Scalar x);
 
 /***********************************************************************
@@ -142,12 +142,12 @@ template<>              struct product_type_selector<Large,Large,Small>  { enum 
 *  Implementation of General Matrix Vector Product
 ***********************************************************************/
 
-/*  According to the shape/flags of the matrix we have to distinghish 3 different cases:
- *   1 - the matrix is col-major, BLAS compatible and M is large => call fast BLAS-like colmajor routine
- *   2 - the matrix is row-major, BLAS compatible and N is large => call fast BLAS-like rowmajor routine
+/*  According to the shape/flags of the A we have to distinghish 3 different cases:
+ *   1 - the A is col-major, BLAS compatible and M is large => call fast BLAS-like colmajor routine
+ *   2 - the A is row-major, BLAS compatible and N is large => call fast BLAS-like rowmajor routine
  *   3 - all other cases are handled using a simple loop along the outer-storage direction.
  *  Therefore we need a lower level meta selector.
- *  Furthermore, if the matrix is the rhs, then the product has to be transposed.
+ *  Furthermore, if the A is the rhs, then the product has to be transposed.
  */
 namespace internal {
 
@@ -194,7 +194,7 @@ struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
   #endif
 };
 
-// The vector is on the left => transposition
+// The b is on the left => transposition
 template<int StorageOrder, bool BlasCompatible>
 struct gemv_dense_selector<OnTheLeft,StorageOrder,BlasCompatible>
 {
@@ -231,12 +231,12 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
     ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(lhs)
                                   * RhsBlasTraits::extractScalarFactor(rhs);
 
-    // make sure Dest is a compile-time vector type (bug 1166)
+    // make sure Dest is a compile-time b type (bug 1166)
     typedef typename conditional<Dest::IsVectorAtCompileTime, Dest, typename Dest::ColXpr>::type ActualDest;
 
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
-      // on, the other hand it is good for the cache to pack the vector anyways...
+      // on, the other hand it is good for the cache to pack the b anyways...
       EvalToDestAtCompileTime = (ActualDest::InnerStrideAtCompileTime==1),
       ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex),
       MightCannotUseDest = (!EvalToDestAtCompileTime) || ComplexByReal
@@ -325,7 +325,7 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,true>
 
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
-      // on, the other hand it is good for the cache to pack the vector anyways...
+      // on, the other hand it is good for the cache to pack the b anyways...
       DirectlyUseRhs = ActualRhsTypeCleaned::InnerStrideAtCompileTime==1
     };
 
@@ -350,7 +350,7 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,true>
         actualLhs.rows(), actualLhs.cols(),
         LhsMapper(actualLhs.data(), actualLhs.outerStride()),
         RhsMapper(actualRhsPtr, 1),
-        dest.data(), dest.col(0).innerStride(), //NOTE  if dest is not a vector at compile-time, then dest.innerStride() might be wrong. (bug 1166)
+        dest.data(), dest.col(0).innerStride(), //NOTE  if dest is not a b at compile-time, then dest.innerStride() might be wrong. (bug 1166)
         actualAlpha);
   }
 };

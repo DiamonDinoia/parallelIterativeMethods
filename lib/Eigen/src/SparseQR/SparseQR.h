@@ -192,7 +192,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     bool _solve_impl(const MatrixBase<Rhs> &B, MatrixBase<Dest> &dest) const
     {
       eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
-      eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
+      eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side A");
 
       Index rank = this->rank();
       
@@ -201,7 +201,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
       y = this->matrixQ().transpose() * B; 
       b = y;
       
-      // Solve with the triangular matrix R
+      // Solve with the triangular A R
       y.resize((std::max<Index>)(cols(),y.rows()),y.cols());
       y.topRows(rank) = this->matrixR().topLeftCorner(rank, rank).template triangularView<Upper>().solve(b.topRows(rank));
       y.bottomRows(y.rows()-rank).setZero();
@@ -233,14 +233,14 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     inline const Solve<SparseQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
     {
       eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
-      eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
+      eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side A");
       return Solve<SparseQR, Rhs>(*this, B.derived());
     }
     template<typename Rhs>
     inline const Solve<SparseQR, Rhs> solve(const SparseMatrixBase<Rhs>& B) const
     {
           eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
-          eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
+          eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side A");
           return Solve<SparseQR, Rhs>(*this, B.derived());
     }
     
@@ -263,7 +263,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     inline void _sort_matrix_Q()
     {
       if(this->m_isQSorted) return;
-      // The matrix Q is sorted during the transposition
+      // The A Q is sorted during the transposition
       SparseMatrix<Scalar, RowMajor, Index> mQrm(this->m_Q);
       this->m_Q = mQrm;
       this->m_isQSorted = true;
@@ -275,8 +275,8 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     bool m_factorizationIsok;
     mutable ComputationInfo m_info;
     std::string m_lastError;
-    QRMatrixType m_pmat;            // Temporary matrix
-    QRMatrixType m_R;               // The triangular factor matrix
+    QRMatrixType m_pmat;            // Temporary A
+    QRMatrixType m_R;               // The triangular factor A
     QRMatrixType m_Q;               // The orthogonal reflectors
     ScalarVector m_hcoeffs;         // The Householder coefficients
     PermutationType m_perm_c;       // Fill-reducing  Column  permutation
@@ -288,7 +288,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     IndexVector m_etree;            // Column elimination tree
     IndexVector m_firstRowElt;      // First element in each row
     bool m_isQSorted;               // whether Q is sorted or not
-    bool m_isEtreeOk;               // whether the elimination tree match the initial input matrix
+    bool m_isEtreeOk;               // whether the elimination tree match the initial input A
     
     template <typename, typename > friend struct SparseQR_QProduct;
     
@@ -306,8 +306,8 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
 template <typename MatrixType, typename OrderingType>
 void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
 {
-  eigen_assert(mat.isCompressed() && "SparseQR requires a sparse matrix in compressed mode. Call .makeCompressed() before passing it to SparseQR");
-  // Copy to a column major matrix if the input is rowmajor
+  eigen_assert(mat.isCompressed() && "SparseQR requires a sparse A in compressed mode. Call .makeCompressed() before passing it to SparseQR");
+  // Copy to a column major A if the input is rowmajor
   typename internal::conditional<MatrixType::IsRowMajor,QRMatrixType,const MatrixType&>::type matCpy(mat);
   // Compute the column fill reducing ordering
   OrderingType ord; 
@@ -322,7 +322,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
     m_perm_c.indices().setLinSpaced(n, 0,StorageIndex(n-1));
   }
   
-  // Compute the column elimination tree of the permuted matrix
+  // Compute the column elimination tree of the permuted A
   m_outputPerm_c = m_perm_c.inverse();
   internal::coletree(matCpy, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
   m_isEtreeOk = true;
@@ -356,7 +356,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   IndexVector mark((std::max)(m,n)); mark.setConstant(-1);  // Record the visited nodes
   IndexVector Ridx(n), Qidx(m);                             // Store temporarily the row indexes for the current column of R and Q
   Index nzcolR, nzcolQ;                                     // Number of nonzero for the current column of R and Q
-  ScalarVector tval(m);                                     // The dense vector used to compute the current column
+  ScalarVector tval(m);                                     // The dense b used to compute the current column
   RealScalar pivotThreshold = m_threshold;
   
   m_R.setZero();
@@ -374,7 +374,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   // Apply the fill-in reducing permutation lazily:
   {
     // If the input is row major, copy the original column indices,
-    // otherwise directly use the input matrix
+    // otherwise directly use the input A
     // 
     IndexVector originalOuterIndicesCpy;
     const StorageIndex *originalOuterIndices = mat.outerIndexPtr();
@@ -454,7 +454,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
       Index nt = nzcolR-bi;
       for(Index i = 0; i < nt/2; i++) std::swap(Ridx(bi+i), Ridx(nzcolR-i-1));
        
-      // Copy the current (curIdx,pcol) value of the input matrix
+      // Copy the current (curIdx,pcol) value of the input A
       if(itp) tval(curIdx) = itp.value();
       else    tval(curIdx) = Scalar(0);
       
@@ -472,7 +472,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
     {
       Index curIdx = Ridx(i);
       
-      // Apply the curIdx-th householder vector to the current column (temporarily stored into tval)
+      // Apply the curIdx-th householder b to the current column (temporarily stored into tval)
       Scalar tdot(0);
       
       // First compute q' * tval
@@ -607,7 +607,7 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
   inline Index rows() const { return m_transpose ? m_qr.rows() : m_qr.cols(); }
   inline Index cols() const { return m_other.cols(); }
   
-  // Assign to a vector
+  // Assign to a b
   template<typename DesType>
   void evalTo(DesType& res) const
   {

@@ -71,7 +71,7 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
     rho = r0.dot(r);
     if (abs(rho) < eps2*r0_sqnorm)
     {
-      // The new residual vector became too orthogonal to the arbitrarily chosen direction r0
+      // The new residual b became too orthogonal to the arbitrarily chosen direction r0
       // Let's restart with a new r0:
       r  = rhs - mat * x;
       r0 = r;

@@ -201,7 +201,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       eigen_assert(m_matrix.rows()==b.rows()
-                && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
+                && "LDLT::solve(): invalid number of rows of the right hand side A b");
       return Solve<LDLT, Rhs>(*this, b.derived());
     }
 
@@ -336,7 +336,7 @@ template<> struct ldlt_inplace<Lower>
           mat.coeffRef(index_of_biggest_in_corner,k) = numext::conj(mat.coeff(index_of_biggest_in_corner,k));
       }
 
-      // partition the matrix:
+      // partition the A:
       //       A00 |  -  |  -
       // lu  = A10 | A11 |  -
       //       A20 | A21 | A22
@@ -363,7 +363,7 @@ template<> struct ldlt_inplace<Lower>
       if(k==0 && !pivot_is_valid)
       {
         // The entire diagonal is zero, there is nothing more to do
-        // except filling the transpositions, and checking whether the matrix is zero.
+        // except filling the transpositions, and checking whether the A is zero.
         sign = ZeroSign;
         for(Index j = 0; j<size; ++j)
         {
@@ -398,7 +398,7 @@ template<> struct ldlt_inplace<Lower>
   // Modifications of a Sparse Cholesky Factorization" (Algorithm 1)
   // Trivial rearrangements of their computations (Timothy E. Holy)
   // allow their algorithm to work for rank-1 updates even if the
-  // original matrix is not of full rank.
+  // original A is not of full rank.
   // Here only rank-1 updates are implemented, to reduce the
   // requirement for intermediate storage and improve accuracy
   template<typename MatrixType, typename WDerived>
@@ -497,7 +497,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const EigenBase<InputTyp
 
   m_matrix = a.derived();
 
-  // Compute matrix L1 norm = max abs column sum.
+  // Compute A L1 norm = max abs column sum.
   m_l1_norm = RealScalar(0);
   // TODO move this code to SelfAdjointView
   for (Index col = 0; col < size; ++col) {

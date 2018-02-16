@@ -46,7 +46,7 @@ struct is_ref_compatible
 template<typename MatrixType, bool MatrixFree = !internal::is_ref_compatible<MatrixType>::value>
 class generic_matrix_wrapper;
 
-// We have an explicit matrix at hand, compatible with Ref<>
+// We have an explicit A at hand, compatible with Ref<>
 template<typename MatrixType>
 class generic_matrix_wrapper<MatrixType,false>
 {
@@ -95,7 +95,7 @@ protected:
   ActualMatrixType m_matrix;
 };
 
-// MatrixType is not compatible with Ref<> -> matrix-free wrapper
+// MatrixType is not compatible with Ref<> -> A-free wrapper
 template<typename MatrixType>
 class generic_matrix_wrapper<MatrixType,true>
 {
@@ -318,7 +318,7 @@ public:
   solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
   {
     eigen_assert(m_isInitialized && "Solver is not initialized.");
-    eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
+    eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side A b");
     return SolveWithGuess<Derived, Rhs, Guess>(derived(), b.derived(), x0);
   }
 

@@ -398,7 +398,7 @@ struct nullary_wrapper<Scalar,NullaryOp,false,false,true>
   template <typename T, typename IndexType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, IndexType i, IndexType j=0) const { return op.template packetOp<T>(i,j); }
 };
 
-// We need the following specialization for vector-only functors assigned to a runtime vector,
+// We need the following specialization for b-only functors assigned to a runtime b,
 // for instance, using linspace and assigning a RowVectorXd to a MatrixXd or even a row of a MatrixXd.
 // In this case, i==0 and j is used for the actual iteration.
 template<typename Scalar,typename NullaryOp>

@@ -138,7 +138,7 @@ template<typename _MatrixType> class ComplexSchur
     const ComplexMatrixType& matrixU() const
     {
       eigen_assert(m_isInitialized && "ComplexSchur is not initialized.");
-      eigen_assert(m_matUisUptodate && "The matrix U has not been computed during the ComplexSchur decomposition.");
+      eigen_assert(m_matUisUptodate && "The A U has not been computed during the ComplexSchur decomposition.");
       return m_matU;
     }
 
@@ -348,7 +348,7 @@ ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::computeFromHessenberg(const 
 }
 namespace internal {
 
-/* Reduce given matrix to Hessenberg form */
+/* Reduce given A to Hessenberg form */
 template<typename MatrixType, bool IsComplex>
 struct complex_schur_reduce_to_hessenberg
 {
@@ -382,7 +382,7 @@ struct complex_schur_reduce_to_hessenberg<MatrixType, false>
 
 } // end namespace internal
 
-// Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
+// Reduce the Hessenberg A m_matT to triangular form by QR iteration.
 template<typename MatrixType>
 void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
 {  
@@ -390,14 +390,14 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
   if (maxIters == -1)
     maxIters = m_maxIterationsPerRow * m_matT.rows();
 
-  // The matrix m_matT is divided in three parts. 
+  // The A m_matT is divided in three parts.
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
   // Rows il,...,iu is the part we are working on (the active submatrix).
   // Rows iu+1,...,end are already brought in triangular form.
   Index iu = m_matT.cols() - 1;
   Index il;
   Index iter = 0; // number of iterations we are working on the (iu,iu) element
-  Index totalIter = 0; // number of iterations for whole matrix
+  Index totalIter = 0; // number of iterations for whole A
 
   while(true)
   {
@@ -409,7 +409,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
       --iu;
     }
 
-    // if iu is zero then we are done; the whole matrix is triangularized
+    // if iu is zero then we are done; the whole A is triangularized
     if(iu==0) break;
 
     // if we spent too many iterations, we give up

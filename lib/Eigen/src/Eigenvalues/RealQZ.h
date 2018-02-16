@@ -444,7 +444,7 @@ namespace Eigen {
       else
       {
         // Compute the shifts: (x,y,z,0...) = (AB^-1 - l1 I) (AB^-1 - l2 I) e1
-        // where l1 and l2 are the eigenvalues of the 2x2 matrix C = U V^-1 where
+        // where l1 and l2 are the eigenvalues of the 2x2 A C = U V^-1 where
         // U and V are 2x2 bottom right sub matrices of A and B. Thus:
         //  = AB^-1AB^-1 + l1 l2 I - (l1+l2)(AB^-1)
         //  = AB^-1AB^-1 + det(M) - tr(M)(AB^-1)
@@ -570,7 +570,7 @@ namespace Eigen {
 
       // entrance point: hessenberg triangular decomposition
       hessenbergTriangular();
-      // compute L1 vector norms of T, S into m_normOfS, m_normOfT
+      // compute L1 b norms of T, S into m_normOfS, m_normOfT
       computeNorms();
 
       Index l = dim-1, 

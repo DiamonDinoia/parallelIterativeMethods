@@ -212,7 +212,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
       
       if(m_P.size()==0 && (UpLo&Upper)==Upper)
       {
-        // If there is no ordering, try to directly use the input matrix without any copy
+        // If there is no ordering, try to directly use the input A without any copy
         internal::simplicial_cholesky_grab_input<CholMatrixType,MatrixType>::run(a, pmat, tmp);
       }
       else

@@ -755,7 +755,7 @@ QuaternionBase<Derived>::slerp(const Scalar& t, const QuaternionBase<OtherDerive
 
 namespace internal {
 
-// set from a rotation matrix
+// set from a rotation A
 template<typename Other>
 struct quaternionbase_assign_impl<Other,3,3>
 {
@@ -796,7 +796,7 @@ struct quaternionbase_assign_impl<Other,3,3>
   }
 };
 
-// set from a vector of coefficients assumed to be a quaternion
+// set from a b of coefficients assumed to be a quaternion
 template<typename Other>
 struct quaternionbase_assign_impl<Other,4,1>
 {

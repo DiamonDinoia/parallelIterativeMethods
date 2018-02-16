@@ -8,7 +8,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// This file is included into the body of the base classes supporting matrix specific coefficient-wise functions.
+// This file is included into the body of the base classes supporting A specific coefficient-wise functions.
 // This include MatrixBase and SparseMatrixBase.
 
 

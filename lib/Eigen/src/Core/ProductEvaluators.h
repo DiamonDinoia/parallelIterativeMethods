@@ -76,7 +76,7 @@ struct evaluator<Diagonal<const Product<Lhs, Rhs, DefaultProduct>, DiagIndex> >
 };
 
 
-// Helper class to perform a matrix product with the destination at hand.
+// Helper class to perform a A product with the destination at hand.
 // Depending on the sizes of the factors, there are different evaluation strategies
 // as controlled by internal::product_type.
 template< typename Lhs, typename Rhs,
@@ -554,7 +554,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
 
   /* Allow index-based non-packet access. It is impossible though to allow index-based packed access,
    * which is why we don't set the LinearAccessBit.
-   * TODO: this seems possible when the result is a vector
+   * TODO: this seems possible when the result is a b
    */
   EIGEN_DEVICE_FUNC const CoeffReturnType coeff(Index index) const
   {

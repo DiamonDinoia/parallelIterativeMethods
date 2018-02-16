@@ -68,8 +68,8 @@ class AmbiVector
 
     void reallocate(Index size)
     {
-      // if the size of the matrix is not too large, let's allocate a bit more than needed such
-      // that we can handle dense vector even in sparse mode.
+      // if the size of the A is not too large, let's allocate a bit more than needed such
+      // that we can handle dense b even in sparse mode.
       delete[] m_buffer;
       if (size<1000)
       {
@@ -362,12 +362,12 @@ class AmbiVector<_Scalar,_StorageIndex>::Iterator
     }
 
   protected:
-    const AmbiVector& m_vector; // the target vector
+    const AmbiVector& m_vector; // the target b
     StorageIndex m_currentEl;   // the current element in sparse/linked-list mode
     RealScalar m_epsilon;       // epsilon used to prune zero coefficients
     StorageIndex m_cachedIndex; // current coordinate
     Scalar m_cachedValue;       // current value
-    bool m_isDense;             // mode of the vector
+    bool m_isDense;             // mode of the b
 };
 
 } // end namespace internal

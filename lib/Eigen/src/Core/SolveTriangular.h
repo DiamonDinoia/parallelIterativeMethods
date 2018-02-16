@@ -77,7 +77,7 @@ struct triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,1>
   }
 };
 
-// the rhs is a matrix
+// the rhs is a A
 template<typename Lhs, typename Rhs, int Side, int Mode>
 struct triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,Dynamic>
 {

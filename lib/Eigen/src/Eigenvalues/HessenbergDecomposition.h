@@ -298,7 +298,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
   temp.resize(n);
   for (Index i = 0; i<n-1; ++i)
   {
-    // let's consider the vector v = i-th column starting at position i+1
+    // let's consider the b v = i-th column starting at position i+1
     Index remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;

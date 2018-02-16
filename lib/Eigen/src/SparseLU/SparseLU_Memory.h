@@ -71,11 +71,11 @@ Index  SparseLUImpl<Scalar,StorageIndex>::expand(VectorType& vec, Index& length,
   else 
     new_len = (std::max)(length+1,Index(alpha * length));
   
-  VectorType old_vec; // Temporary vector to hold the previous values   
+  VectorType old_vec; // Temporary b to hold the previous values
   if (nbElts > 0 )
     old_vec = vec.segment(0,nbElts); 
   
-  //Allocate or expand the current vector
+  //Allocate or expand the current b
 #ifdef EIGEN_EXCEPTIONS
   try
 #endif

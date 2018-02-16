@@ -79,9 +79,9 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
 
 /* Helper for computeProductBlockingSizes.
  *
- * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+ * Given a m x k times k x n A product of scalar types \c LhsScalar and \c RhsScalar,
  * this function computes the blocking size parameters along the respective dimensions
- * for matrix products and related algorithms. The blocking sizes depends on various
+ * for A products and related algorithms. The blocking sizes depends on various
  * parameters:
  * - the L1 and L2 cache sizes,
  * - the register level blocking sizes defined by gebp_traits,

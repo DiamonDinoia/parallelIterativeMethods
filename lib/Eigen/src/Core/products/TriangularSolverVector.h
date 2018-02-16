@@ -26,7 +26,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheRight, Mode, Co
   }
 };
 
-// forward and backward substitution, row-major, rhs is a vector
+// forward and backward substitution, row-major, rhs is a b
 template<typename LhsScalar, typename RhsScalar, typename Index, int Mode, bool Conjugate>
 struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Conjugate, RowMajor>
 {
@@ -84,7 +84,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
   }
 };
 
-// forward and backward substitution, column-major, rhs is a vector
+// forward and backward substitution, column-major, rhs is a b
 template<typename LhsScalar, typename RhsScalar, typename Index, int Mode, bool Conjugate>
 struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Conjugate, ColMajor>
 {

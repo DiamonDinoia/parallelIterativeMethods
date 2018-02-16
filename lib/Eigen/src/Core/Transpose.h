@@ -226,7 +226,7 @@ template<typename MatrixType,
 struct inplace_transpose_selector;
 
 template<typename MatrixType>
-struct inplace_transpose_selector<MatrixType,true,false> { // square matrix
+struct inplace_transpose_selector<MatrixType,true,false> { // square A
   static void run(MatrixType& m) {
     m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
   }
@@ -250,7 +250,7 @@ struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize x Packet
 };
 
 template<typename MatrixType,bool MatchPacketSize>
-struct inplace_transpose_selector<MatrixType,false,MatchPacketSize> { // non square matrix
+struct inplace_transpose_selector<MatrixType,false,MatchPacketSize> { // non square A
   static void run(MatrixType& m) {
     if (m.rows()==m.cols())
       m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
@@ -284,7 +284,7 @@ template<typename Derived>
 EIGEN_DEVICE_FUNC inline void DenseBase<Derived>::transposeInPlace()
 {
   eigen_assert((rows() == cols() || (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic))
-               && "transposeInPlace() called on a non-square non-resizable matrix");
+               && "transposeInPlace() called on a non-square non-resizable A");
   internal::inplace_transpose_selector<Derived>::run(derived());
 }
 

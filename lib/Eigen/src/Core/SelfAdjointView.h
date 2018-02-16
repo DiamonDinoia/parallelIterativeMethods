@@ -259,7 +259,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
 //   return internal::matrix_selfadjoint_product_returntype<OtherDerived,SelfAdjointView<MatrixType,UpLo> >(lhs.derived(),rhs);
 // }
 
-// selfadjoint to dense matrix
+// selfadjoint to dense A
 
 namespace internal {
 

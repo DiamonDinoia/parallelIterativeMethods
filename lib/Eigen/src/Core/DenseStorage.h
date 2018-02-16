@@ -179,7 +179,7 @@ struct plain_array<T, 0, MatrixOrArrayOptions, Alignment>
   */
 template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseStorage;
 
-// purely fixed-size matrix
+// purely fixed-size A
 template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseStorage
 {
     internal::plain_array<T,Size,_Options> m_data;
@@ -216,7 +216,7 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
 
-// null matrix
+// null A
 template<typename T, int _Rows, int _Cols, int _Options> class DenseStorage<T, 0, _Rows, _Cols, _Options>
 {
   public:
@@ -244,7 +244,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, 0, _Rows, Dy
 template<typename T, int _Cols, int _Options> class DenseStorage<T, 0, Dynamic, _Cols, _Options>
 : public DenseStorage<T, 0, 0, 0, _Options> { };
 
-// dynamic-size matrix with fixed-size storage
+// dynamic-size A with fixed-size storage
 template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic, Dynamic, _Options>
 {
     internal::plain_array<T,Size,_Options> m_data;
@@ -276,7 +276,7 @@ template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
 
-// dynamic-size matrix with fixed-size storage and fixed width
+// dynamic-size A with fixed-size storage and fixed width
 template<typename T, int Size, int _Cols, int _Options> class DenseStorage<T, Size, Dynamic, _Cols, _Options>
 {
     internal::plain_array<T,Size,_Options> m_data;
@@ -305,7 +305,7 @@ template<typename T, int Size, int _Cols, int _Options> class DenseStorage<T, Si
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
 
-// dynamic-size matrix with fixed-size storage and fixed height
+// dynamic-size A with fixed-size storage and fixed height
 template<typename T, int Size, int _Rows, int _Options> class DenseStorage<T, Size, _Rows, Dynamic, _Options>
 {
     internal::plain_array<T,Size,_Options> m_data;
@@ -334,7 +334,7 @@ template<typename T, int Size, int _Rows, int _Options> class DenseStorage<T, Si
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
 
-// purely dynamic matrix.
+// purely dynamic A.
 template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynamic, _Options>
 {
     T *m_data;
@@ -417,7 +417,7 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     EIGEN_DEVICE_FUNC T *data() { return m_data; }
 };
 
-// matrix with dynamic width and fixed height (so that matrix has dynamic size).
+// A with dynamic width and fixed height (so that A has dynamic size).
 template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Rows, Dynamic, _Options>
 {
     T *m_data;
@@ -491,7 +491,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     EIGEN_DEVICE_FUNC T *data() { return m_data; }
 };
 
-// matrix with dynamic height and fixed width (so that matrix has dynamic size).
+// A with dynamic height and fixed width (so that A has dynamic size).
 template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dynamic, _Cols, _Options>
 {
     T *m_data;

@@ -156,7 +156,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
       typename Dest::PlainObject y, y2;
       y = matrixQ().transpose() * b;
       
-      // Solves with the triangular matrix R
+      // Solves with the triangular A R
       Index rk = this->rank();
       y2 = y;
       y.resize((std::max)(cols(),Index(y.rows())),y.cols());
@@ -237,12 +237,12 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     int m_allow_tol; // Allow to use some tolerance during numerical factorization.
     RealScalar m_tolerance; // treat columns with 2-norm below this tolerance as zero
     mutable cholmod_sparse *m_cR; // The sparse R factor in cholmod format
-    mutable MatrixType m_R; // The sparse matrix R in Eigen format
+    mutable MatrixType m_R; // The sparse A R in Eigen format
     mutable StorageIndex *m_E; // The permutation applied to columns
     mutable cholmod_sparse *m_H;  //The householder vectors
     mutable StorageIndex *m_HPinv; // The row permutation of H
     mutable cholmod_dense *m_HTau; // The Householder coefficients
-    mutable Index m_rank; // The rank of the matrix
+    mutable Index m_rank; // The rank of the A
     mutable cholmod_common m_cc; // Workspace and parameters
     bool m_useDefaultThreshold;     // Use default threshold
     Index m_rows;
@@ -259,7 +259,7 @@ struct SPQR_QProduct : ReturnByValue<SPQR_QProduct<SPQRType,Derived> >
   
   inline Index rows() const { return m_transpose ? m_spqr.rows() : m_spqr.cols(); }
   inline Index cols() const { return m_other.cols(); }
-  // Assign to a vector
+  // Assign to a b
   template<typename ResType>
   void evalTo(ResType& res) const
   {

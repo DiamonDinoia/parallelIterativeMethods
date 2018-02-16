@@ -17,7 +17,7 @@
 
 namespace Eigen {
 
-  // This one is needed to prevent reimplementing the whole std::vector.
+  // This one is needed to prevent reimplementing the whole std::b.
   template <class T>
   class aligned_allocator_indirection : public EIGEN_ALIGNED_ALLOCATOR<T>
   {
@@ -49,7 +49,7 @@ namespace Eigen {
 #if EIGEN_COMP_MSVC
 
   // sometimes, MSVC detects, at compile time, that the argument x
-  // in std::vector::resize(size_t s,T x) won't be aligned and generate an error
+  // in std::b::resize(size_t s,T x) won't be aligned and generate an error
   // even if this function is never called. Whence this little wrapper.
 #define EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T) \
   typename Eigen::internal::conditional< \

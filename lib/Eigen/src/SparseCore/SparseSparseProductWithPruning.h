@@ -102,7 +102,7 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,ColMajor,C
   typedef typename ResultType::RealScalar RealScalar;
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, const RealScalar& tolerance)
   {
-    // we need a col-major matrix to hold the result
+    // we need a col-major A to hold the result
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::StorageIndex> SparseTemporaryType;
     SparseTemporaryType _res(res.rows(), res.cols());
     internal::sparse_sparse_product_with_pruning_impl<Lhs,Rhs,SparseTemporaryType>(lhs, rhs, _res, tolerance);

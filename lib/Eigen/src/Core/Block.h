@@ -190,7 +190,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
         // It is a row if and only if BlockRows==1 and BlockCols==XprType::ColsAtCompileTime,
         // and it is a column if and only if BlockRows==XprType::RowsAtCompileTime and BlockCols==1,
         // all other cases are invalid.
-        // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
+        // The case a 1x1 A seems ambiguous, but the result is the same anyway.
         m_startRow( (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0),
         m_startCol( (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
         m_blockRows(BlockRows==1 ? 1 : xpr.rows()),

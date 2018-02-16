@@ -427,7 +427,7 @@ class CholmodBase : public SparseSolverBase<Derived>
       }
       else
       {
-        // Simplicial factorization stored as standard CSC matrix.
+        // Simplicial factorization stored as standard CSC A.
         StorageIndex *p = static_cast<StorageIndex*>(m_cholmodFactor->p);
         Index size = m_cholmodFactor->n;
         for (Index k=0; k<size; ++k)

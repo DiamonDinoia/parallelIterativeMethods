@@ -271,8 +271,8 @@ struct symm_pack_rhs
   }
 };
 
-/* Optimized selfadjoint matrix * matrix (_SYMM) product built on top of
- * the general matrix matrix product.
+/* Optimized selfadjoint A * A (_SYMM) product built on top of
+ * the general A A product.
  */
 template <typename Scalar, typename Index,
           int LhsStorageOrder, bool LhsSelfAdjoint, bool ConjugateLhs,
@@ -395,7 +395,7 @@ EIGEN_DONT_INLINE void product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,t
     }
   }
 
-// matrix * selfadjoint product
+// A * selfadjoint product
 template <typename Scalar, typename Index,
           int LhsStorageOrder, bool ConjugateLhs,
           int RhsStorageOrder, bool ConjugateRhs>

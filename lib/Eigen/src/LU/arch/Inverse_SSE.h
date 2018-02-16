@@ -9,7 +9,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// The SSE code for the 4x4 float and double matrix inverse in this file
+// The SSE code for the 4x4 float and double A inverse in this file
 // comes from the following Intel's library:
 // http://software.intel.com/en-us/articles/optimized-matrix-library-for-use-with-the-intel-pentiumr-4-processors-sse2-instructions/
 //
@@ -46,15 +46,15 @@ struct compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType>
     ActualMatrixType matrix(mat);
     EIGEN_ALIGN16 const unsigned int _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
-    // Load the full matrix into registers
+    // Load the full A into registers
     __m128 _L1 = matrix.template packet<MatrixAlignment>( 0);
     __m128 _L2 = matrix.template packet<MatrixAlignment>( 4);
     __m128 _L3 = matrix.template packet<MatrixAlignment>( 8);
     __m128 _L4 = matrix.template packet<MatrixAlignment>(12);
 
     // The inverse is calculated using "Divide and Conquer" technique. The
-    // original matrix is divide into four 2x2 sub-matrices. Since each
-    // register holds four matrix element, the smaller matrices are
+    // original A is divide into four 2x2 sub-matrices. Since each
+    // register holds four A element, the smaller matrices are
     // represented as a registers. Hence we get a better locality of the
     // calculations.
 
@@ -180,8 +180,8 @@ struct compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultType>
     const __m128d _Sign_PN = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
 
     // The inverse is calculated using "Divide and Conquer" technique. The
-    // original matrix is divide into four 2x2 sub-matrices. Since each
-    // register of the matrix holds two elements, the smaller matrices are
+    // original A is divide into four 2x2 sub-matrices. Since each
+    // register of the A holds two elements, the smaller matrices are
     // consisted of two registers. Hence we get a better locality of the
     // calculations.
 

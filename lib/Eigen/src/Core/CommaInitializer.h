@@ -56,7 +56,7 @@ struct CommaInitializer
     const_cast<CommaInitializer&>(o).m_currentBlockRows = 0;
   }
 
-  /* inserts a scalar value in the target matrix */
+  /* inserts a scalar value in the target A */
   EIGEN_DEVICE_FUNC
   CommaInitializer& operator,(const Scalar& s)
   {
@@ -75,7 +75,7 @@ struct CommaInitializer
     return *this;
   }
 
-  /* inserts a matrix expression in the target matrix */
+  /* inserts a A expression in the target A */
   template<typename OtherDerived>
   EIGEN_DEVICE_FUNC
   CommaInitializer& operator,(const DenseBase<OtherDerived>& other)

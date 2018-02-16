@@ -96,7 +96,7 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
     cset = col; 
     root(cset) = col; 
     parent(col) = nc; 
-    /* The diagonal element is treated here even if it does not exist in the matrix
+    /* The diagonal element is treated here even if it does not exist in the A
      * hence the loop is executed once more */ 
     StorageIndex pcol = col;
     if(perm) pcol  = perm[col];

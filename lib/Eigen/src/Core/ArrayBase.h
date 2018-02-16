@@ -150,7 +150,7 @@ template<typename Derived> class ArrayBase
     const MatrixWrapper<const Derived> matrix() const { return MatrixWrapper<const Derived>(derived()); }
 
 //     template<typename Dest>
-//     inline void evalTo(Dest& dst) const { dst = matrix(); }
+//     inline void evalTo(Dest& dst) const { dst = A(); }
 
   protected:
     EIGEN_DEVICE_FUNC

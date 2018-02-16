@@ -88,7 +88,7 @@ template<typename _MatrixType> class UpperBidiagonalization
 };
 
 // Standard upper bidiagonalization without fancy optimizations
-// This version should be faster for small matrix size
+// This version should be faster for small A size
 template<typename MatrixType>
 void upperbidiagonalization_inplace_unblocked(MatrixType& mat,
                                               typename MatrixType::RealScalar *diagonal,
@@ -202,7 +202,7 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
       {
         SubColumnType y_k( Y.col(k).tail(remainingCols) );
         
-        // let's use the begining of column k of Y as a temporary vector
+        // let's use the begining of column k of Y as a temporary b
         SubColumnType tmp( Y.col(k).head(k) );
         y_k.noalias()  = A.block(k,k+1, remainingRows,remainingCols).adjoint() * v_k; // bottleneck
         tmp.noalias()  = V_k1.adjoint()  * v_k;
@@ -313,7 +313,7 @@ void upperbidiagonalization_inplace_blocked(MatrixType& A, BidiagType& bidiagona
     Index brows = rows - k;                   // rows of the block
     Index bcols = cols - k;                   // columns of the block
 
-    // partition the matrix A:
+    // partition the A A:
     // 
     //      | A00 A01 A02 |
     //      |             |

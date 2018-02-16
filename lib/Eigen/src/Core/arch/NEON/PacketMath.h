@@ -350,7 +350,7 @@ template<> EIGEN_STRONG_INLINE Packet4f preduxp<Packet4f>(const Packet4f* vecs)
   Packet4f sum1, sum2, sum;
 
   // NEON zip performs interleaving of the supplied vectors.
-  // We perform two interleaves in a row to acquire the transposed vector
+  // We perform two interleaves in a row to acquire the transposed b
   vtrn1 = vzipq_f32(vecs[0], vecs[2]);
   vtrn2 = vzipq_f32(vecs[1], vecs[3]);
   res1 = vzipq_f32(vtrn1.val[0], vtrn2.val[0]);
@@ -381,7 +381,7 @@ template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
   Packet4i sum1, sum2, sum;
 
   // NEON zip performs interleaving of the supplied vectors.
-  // We perform two interleaves in a row to acquire the transposed vector
+  // We perform two interleaves in a row to acquire the transposed b
   vtrn1 = vzipq_s32(vecs[0], vecs[2]);
   vtrn2 = vzipq_s32(vecs[1], vecs[3]);
   res1 = vzipq_s32(vtrn1.val[0], vtrn2.val[0]);
@@ -674,7 +674,7 @@ template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
   float64x2_t trn1, trn2;
 
   // NEON zip performs interleaving of the supplied vectors.
-  // We perform two interleaves in a row to acquire the transposed vector
+  // We perform two interleaves in a row to acquire the transposed b
   trn1 = vzip1q_f64(vecs[0], vecs[1]);
   trn2 = vzip2q_f64(vecs[0], vecs[1]);
 

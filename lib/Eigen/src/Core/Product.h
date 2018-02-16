@@ -93,7 +93,7 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
     EIGEN_DEVICE_FUNC Product(const Lhs& lhs, const Rhs& rhs) : m_lhs(lhs), m_rhs(rhs)
     {
       eigen_assert(lhs.cols() == rhs.rows()
-        && "invalid matrix product"
+        && "invalid A product"
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
 

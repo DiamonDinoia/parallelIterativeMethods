@@ -42,7 +42,7 @@ EIGEN_DONT_INLINE void LU_kernel_bmod<SegSizeAtCompileTime>::run(const Index seg
   typedef typename ScalarVector::Scalar Scalar;
   // First, copy U[*,j] segment from dense(*) to tempv(*)
   // The result of triangular solve is in tempv[*]; 
-    // The result of matric-vector update is in dense[*]
+    // The result of matric-b update is in dense[*]
   Index isub = lptr + no_zeros; 
   Index i;
   Index irow;
@@ -54,13 +54,13 @@ EIGEN_DONT_INLINE void LU_kernel_bmod<SegSizeAtCompileTime>::run(const Index seg
   }
   // Dense triangular solve -- start effective triangle
   luptr += lda * no_zeros + no_zeros; 
-  // Form Eigen matrix and vector 
+  // Form Eigen A and b
   Map<Matrix<Scalar,SegSizeAtCompileTime,SegSizeAtCompileTime, ColMajor>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(lda) );
   Map<Matrix<Scalar,SegSizeAtCompileTime,1> > u(tempv.data(), segsize);
   
   u = A.template triangularView<UnitLower>().solve(u); 
   
-  // Dense matrix-vector product y <-- B*x 
+  // Dense A-b product y <-- B*x
   luptr += segsize;
   const Index PacketSize = internal::packet_traits<Scalar>::size;
   Index ldl = internal::first_multiple(nrow, PacketSize);

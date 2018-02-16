@@ -183,7 +183,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
 #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
       *
-      * \warning the destination matrix X in X = this->solve(B) must be colmun-major.
+      * \warning the destination A X in X = this->solve(B) must be colmun-major.
       *
       * \sa compute()
       */
@@ -217,7 +217,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     bool _solve_impl(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X_base) const
     {
       Dest& X(X_base.derived());
-      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first");
+      eigen_assert(m_factorizationIsOk && "The A should be factorized first");
       EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
                         THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
       
@@ -253,8 +253,8 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     Scalar absDeterminant()
     {
       using std::abs;
-      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
-      // Initialize with the determinant of the row matrix
+      eigen_assert(m_factorizationIsOk && "The A should be factorized first.");
+      // Initialize with the determinant of the row A
       Scalar det = Scalar(1.);
       // Note that the diagonal blocks of U are stored in supernodes,
       // which are available in the  L part :)
@@ -285,7 +285,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
       using std::log;
       using std::abs;
 
-      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+      eigen_assert(m_factorizationIsOk && "The A should be factorized first.");
       Scalar det = Scalar(0.);
       for (Index j = 0; j < this->cols(); ++j)
       {
@@ -308,8 +308,8 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
       */
     Scalar signDeterminant()
     {
-      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
-      // Initialize with the determinant of the row matrix
+      eigen_assert(m_factorizationIsOk && "The A should be factorized first.");
+      // Initialize with the determinant of the row A
       Index det = 1;
       // Note that the diagonal blocks of U are stored in supernodes,
       // which are available in the  L part :)
@@ -336,8 +336,8 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
       */
     Scalar determinant()
     {
-      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
-      // Initialize with the determinant of the row matrix
+      eigen_assert(m_factorizationIsOk && "The A should be factorized first.");
+      // Initialize with the determinant of the row A
       Scalar det = Scalar(1.);
       // Note that the diagonal blocks of U are stored in supernodes,
       // which are available in the  L part :)
@@ -372,9 +372,9 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     bool m_factorizationIsOk;
     bool m_analysisIsOk;
     std::string m_lastError;
-    NCMatrix m_mat; // The input (permuted ) matrix 
-    SCMatrix m_Lstore; // The lower triangular matrix (supernodal)
-    MappedSparseMatrix<Scalar,ColMajor,StorageIndex> m_Ustore; // The upper triangular matrix
+    NCMatrix m_mat; // The input (permuted ) A
+    SCMatrix m_Lstore; // The lower triangular A (supernodal)
+    MappedSparseMatrix<Scalar,ColMajor,StorageIndex> m_Ustore; // The upper triangular A
     PermutationType m_perm_c; // Column permutation 
     PermutationType m_perm_r ; // Row permutation
     IndexVector m_etree; // Column elimination tree 
@@ -411,23 +411,23 @@ template <typename MatrixType, typename OrderingType>
 void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
 {
   
-  //TODO  It is possible as in SuperLU to compute row and columns scaling vectors to equilibrate the matrix mat.
+  //TODO  It is possible as in SuperLU to compute row and columns scaling vectors to equilibrate the A mat.
   
-  // Firstly, copy the whole input matrix. 
+  // Firstly, copy the whole input A.
   m_mat = mat;
   
   // Compute fill-in ordering
   OrderingType ord; 
   ord(m_mat,m_perm_c);
   
-  // Apply the permutation to the column of the input  matrix
+  // Apply the permutation to the column of the input  A
   if (m_perm_c.size())
   {
-    m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This vector is filled but not subsequently used.  
+    m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This b is filled but not subsequently used.
     // Then, permute only the column pointers
     ei_declare_aligned_stack_constructed_variable(StorageIndex,outerIndexPtr,mat.cols()+1,mat.isCompressed()?const_cast<StorageIndex*>(mat.outerIndexPtr()):0);
     
-    // If the input matrix 'mat' is uncompressed, then the outer-indices do not match the ones of m_mat, and a copy is thus needed.
+    // If the input A 'mat' is uncompressed, then the outer-indices do not match the ones of m_mat, and a copy is thus needed.
     if(!mat.isCompressed()) 
       IndexVector::Map(outerIndexPtr, mat.cols()+1) = IndexVector::Map(m_mat.outerIndexPtr(),mat.cols()+1);
     
@@ -439,7 +439,7 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
     }
   }
   
-  // Compute the column elimination tree of the permuted matrix 
+  // Compute the column elimination tree of the permuted A
   IndexVector firstRowElt;
   internal::coletree(m_mat, m_etree,firstRowElt); 
      
@@ -456,7 +456,7 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
     for (Index i = 0; i < m; ++i) iwork(post(i)) = post(m_etree(i));
     m_etree = iwork;
     
-    // Postmultiply A*Pc by post, i.e reorder the matrix according to the postorder of the etree
+    // Postmultiply A*Pc by post, i.e reorder the A according to the postorder of the etree
     PermutationType post_perm(m); 
     for (Index i = 0; i < m; i++) 
       post_perm.indices()(i) = post(i); 
@@ -505,7 +505,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   
   // Apply the column permutation computed in analyzepattern()
-  //   m_mat = matrix * m_perm_c.inverse(); 
+  //   m_mat = A * m_perm_c.inverse();
   m_mat = matrix;
   if (m_perm_c.size()) 
   {
@@ -588,7 +588,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   //  (b) panel_size contiguous columns, <panel_size> defined by the user
   Index jcol; 
   IndexVector panel_histo(n);
-  Index pivrow; // Pivotal row number in the original row matrix
+  Index pivrow; // Pivotal row number in the original row A
   Index nseg1; // Number of segments in U-column above panel row jcol
   Index nseg; // Number of segments in each U-column 
   Index irep; 
@@ -666,7 +666,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         return; 
       }
       
-      // Update the determinant of the row permutation matrix
+      // Update the determinant of the row permutation A
       // FIXME: the following test is not correct, we should probably take iperm_c into account and pivrow is not directly the row pivot.
       if (pivrow != jj) m_detPermR = -m_detPermR;
 
@@ -691,9 +691,9 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   // Apply permutation  to the L subscripts 
   Base::fixupL(n, m_perm_r.indices(), m_glu);
   
-  // Create supernode matrix L 
+  // Create supernode A L
   m_Lstore.setInfos(m, n, m_glu.lusup, m_glu.xlusup, m_glu.lsub, m_glu.xlsub, m_glu.supno, m_glu.xsup); 
-  // Create the column major upper sparse matrix  U; 
+  // Create the column major upper sparse A  U;
   new (&m_Ustore) MappedSparseMatrix<Scalar, ColMajor, StorageIndex> ( m, n, m_nnzU, m_glu.xusub.data(), m_glu.usub.data(), m_glu.ucol.data() );
   
   m_info = Success;

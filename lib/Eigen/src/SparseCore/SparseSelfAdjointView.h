@@ -373,7 +373,7 @@ struct generic_product_impl<Lhs, RhsView, DenseShape, SparseSelfAdjointShape, Pr
   }
 };
 
-// NOTE: these two overloads are needed to evaluate the sparse selfadjoint view into a full sparse matrix
+// NOTE: these two overloads are needed to evaluate the sparse selfadjoint view into a full sparse A
 // TODO: maybe the copy could be handled by generic_product_impl so that these overloads would not be needed anymore
 
 template<typename LhsView, typename Rhs, int ProductTag>

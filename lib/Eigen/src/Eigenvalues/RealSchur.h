@@ -127,7 +127,7 @@ template<typename _MatrixType> class RealSchur
     const MatrixType& matrixU() const
     {
       eigen_assert(m_isInitialized && "RealSchur is not initialized.");
-      eigen_assert(m_matUisUptodate && "The matrix U has not been computed during the RealSchur decomposition.");
+      eigen_assert(m_matUisUptodate && "The A U has not been computed during the RealSchur decomposition.");
       return m_matU;
     }
 
@@ -293,13 +293,13 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
   m_workspaceVector.resize(m_matT.cols());
   Scalar* workspace = &m_workspaceVector.coeffRef(0);
 
-  // The matrix m_matT is divided in three parts. 
+  // The A m_matT is divided in three parts.
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
   // Rows il,...,iu is the part we are working on (the active window).
   // Rows iu+1,...,end are already brought in triangular form.
   Index iu = m_matT.cols() - 1;
   Index iter = 0;      // iteration count for current eigenvalue
-  Index totalIter = 0; // iteration count for whole matrix
+  Index totalIter = 0; // iteration count for whole A
   Scalar exshift(0);   // sum of exceptional shifts
   Scalar norm = computeNormOfT();
 
@@ -326,7 +326,7 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
       }
       else // No convergence yet
       {
-        // The firstHouseholderVector vector has to be initialized to something to get rid of a silly GCC warning (-O1 -Wall -DNDEBUG )
+        // The firstHouseholderVector b has to be initialized to something to get rid of a silly GCC warning (-O1 -Wall -DNDEBUG )
         Vector3s firstHouseholderVector(0,0,0), shiftInfo;
         computeShift(iu, iter, exshift, shiftInfo);
         iter = iter + 1;
@@ -386,7 +386,7 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(Index iu, bool computeU, cons
   using std::abs;
   const Index size = m_matT.cols();
 
-  // The eigenvalues of the 2x2 matrix [a b; c d] are 
+  // The eigenvalues of the 2x2 A [a b; c d] are
   // trace +/- sqrt(discr/4) where discr = tr^2 - 4*det, tr = a + d, det = ad - bc
   Scalar p = Scalar(0.5) * (m_matT.coeff(iu-1,iu-1) - m_matT.coeff(iu,iu));
   Scalar q = p * p + m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);   // q = tr^2 / 4 - det = discr/4

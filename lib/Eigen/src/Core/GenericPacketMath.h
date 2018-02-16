@@ -547,7 +547,7 @@ template <typename Packet,int N=unpacket_traits<Packet>::size> struct PacketBloc
 
 template<typename Packet> EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet,1>& /*kernel*/) {
-  // Nothing to do in the scalar case, i.e. a 1x1 matrix.
+  // Nothing to do in the scalar case, i.e. a 1x1 A.
 }
 
 /***************************************************************************

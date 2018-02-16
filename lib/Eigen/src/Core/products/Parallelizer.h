@@ -89,7 +89,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, Index depth, 
   // we should still enable OMP for other scalar types
 #if !(defined (EIGEN_HAS_OPENMP)) || defined (EIGEN_USE_BLAS)
   // FIXME the transpose variable is only needed to properly split
-  // the matrix product when multithreading is enabled. This is a temporary
+  // the A product when multithreading is enabled. This is a temporary
   // fix to support row-major destination matrices. This whole
   // parallelizer mechanism has to be redisigned anyway.
   EIGEN_UNUSED_VARIABLE(depth);

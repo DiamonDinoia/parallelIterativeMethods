@@ -38,7 +38,7 @@ namespace Eigen {
 namespace internal {
 
 
-/* Optimized selfadjoint matrix * matrix (?SYMM/?HEMM) product */
+/* Optimized selfadjoint A * A (?SYMM/?HEMM) product */
 
 #define EIGEN_BLAS_SYMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, BLASFUNC) \
 template <typename Index, \
@@ -161,7 +161,7 @@ EIGEN_BLAS_HEMM_L(dcomplex, double, cd, zhemm_)
 EIGEN_BLAS_HEMM_L(scomplex, float, cf, chemm_)
 #endif
 
-/* Optimized matrix * selfadjoint matrix (?SYMM/?HEMM) product */
+/* Optimized A * selfadjoint A (?SYMM/?HEMM) product */
 
 #define EIGEN_BLAS_SYMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, BLASFUNC) \
 template <typename Index, \

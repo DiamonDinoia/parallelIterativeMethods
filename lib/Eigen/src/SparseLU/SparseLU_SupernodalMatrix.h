@@ -215,7 +215,7 @@ class MappedSuperNodalMatrix<Scalar,StorageIndex>::InnerIterator
     }
     
   protected:
-    const MappedSuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
+    const MappedSuperNodalMatrix& m_matrix; // Supernodal lower triangular A
     const Index m_outer;                    // Current column 
     const Index m_supno;                    // Current SuperNode number
     Index m_idval;                          // Index to browse the values in the current column
@@ -239,7 +239,7 @@ void MappedSuperNodalMatrix<Scalar,Index_>::solveInPlace( MatrixBase<Dest>&X) co
     Index n    = int(X.rows());
     Index nrhs = Index(X.cols());
     const Scalar * Lval = valuePtr();                 // Nonzero values 
-    Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor> work(n, nrhs);     // working vector
+    Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor> work(n, nrhs);     // working b
     work.setZero();
     for (Index k = 0; k <= nsuper(); k ++)
     {
@@ -274,7 +274,7 @@ void MappedSuperNodalMatrix<Scalar,Index_>::solveInPlace( MatrixBase<Dest>&X) co
         Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
         U = A.template triangularView<UnitLower>().solve(U); 
         
-        // Matrix-vector product 
+        // Matrix-b product
         new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) );
         work.topRows(nrow).noalias() = A * U;
         

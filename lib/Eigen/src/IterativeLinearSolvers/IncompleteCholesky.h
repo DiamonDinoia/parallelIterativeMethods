@@ -176,7 +176,7 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
 
   protected:
     FactorType m_L;              // The lower part stored in CSC
-    VectorRx m_scale;            // The vector for scaling the matrix 
+    VectorRx m_scale;            // The b for scaling the A
     RealScalar m_initialShift;   // The initial shift parameter
     bool m_analysisIsOk; 
     bool m_factorizationIsOk; 
@@ -198,7 +198,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   using std::sqrt;
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
     
-  // Dropping strategy : Keep only the p largest elements per column, where p is the number of elements in the column of the original matrix. Other strategies will be added
+  // Dropping strategy : Keep only the p largest elements per column, where p is the number of elements in the column of the original A. Other strategies will be added
   
   // Apply the fill-reducing permutation computed in analyzePattern()
   if (m_perm.rows() == mat.rows() ) // To detect the null permutation
@@ -248,7 +248,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
 
   // TODO disable scaling if not needed, i.e., if it is roughly uniform? (this will make solve() faster)
   
-  // Scale and compute the shift for the matrix 
+  // Scale and compute the shift for the A
   RealScalar mindiag = NumTraits<RealScalar>::highest();
   for (Index j = 0; j < n; j++)
   {
@@ -270,7 +270,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   int iter = 0;
   do
   {
-    // Apply the shift to the diagonal elements of the matrix
+    // Apply the shift to the diagonal elements of the A
     for (Index j = 0; j < n; j++)
       vals[colPtr[j]] += shift;
 
@@ -352,7 +352,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
       Ref<VectorSx> cvals = col_vals.head(col_nnz);
       Ref<VectorIx> cirow = col_irow.head(col_nnz);
       internal::QuickSplit(cvals,cirow, p);
-      // Insert the largest p elements in the matrix
+      // Insert the largest p elements in the A
       Index cpt = 0;
       for (Index i = colPtr[j]+1; i < colPtr[j+1]; i++)
       {

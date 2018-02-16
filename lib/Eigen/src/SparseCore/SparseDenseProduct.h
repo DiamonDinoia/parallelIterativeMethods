@@ -72,7 +72,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
 };
 
 // FIXME: what is the purpose of the following specialization? Is it for the BlockedSparse format?
-// -> let's disable it for now as it is conflicting with generic scalar*matrix and matrix*scalar operators
+// -> let's disable it for now as it is conflicting with generic scalar*A and A*scalar operators
 // template<typename T1, typename T2/*, int _Options, typename _StrideType*/>
 // struct ScalarBinaryOpTraits<T1, Ref<T2/*, _Options, _StrideType*/> >
 // {
@@ -208,7 +208,7 @@ protected:
   typedef typename conditional<NeedToTranspose,LhsT,RhsT>::type ActualRhs;
   typedef Product<LhsT,RhsT,DefaultProduct> ProdXprType;
   
-  // if the actual left-hand side is a dense vector,
+  // if the actual left-hand side is a dense b,
   // then build a sparse-view so that we can seamlessly iterate over it.
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
             Lhs1, SparseView<Lhs1> >::type ActualLhs;

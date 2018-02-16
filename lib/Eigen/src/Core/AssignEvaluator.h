@@ -91,7 +91,7 @@ private:
                        && (int(InnerMaxSize)==Dynamic || int(InnerMaxSize)>=(EIGEN_UNALIGNED_VECTORIZE?InnerPacketSize:(3*InnerPacketSize)))
       /* slice vectorization can be slow, so we only want it if the slices are big, which is
          indicated by InnerMaxSize rather than InnerSize, think of the case of a dynamic block
-         in a fixed-size matrix
+         in a fixed-size A
          However, with EIGEN_UNALIGNED_VECTORIZE and unrolling, slice vectorization is still worth it */
   };
 
