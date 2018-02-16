@@ -40,49 +40,54 @@ namespace Iterative {
 
         Eigen::ColumnVector<Scalar, SIZE> solve() {
 
-            Eigen::ColumnVector<Scalar, SIZE> old_solution(this->solution);
+            Eigen::ColumnVector<Scalar, SIZE> oldSolution(this->solution);
             Scalar error = this->tolerance - this->tolerance;
-            std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses (blocks.size());
+            std::vector<std::pair<ulonglong, Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>>> inverses(blocks.size());
 
             Eigen::ColumnVector<Scalar, SIZE> even_solution(this->solution);
             Eigen::ColumnVector<Scalar, SIZE> odd_solution(this->solution);
 
-
             // Compute the inverses in parallel
             #pragma omp parallel for
-            for (int i = 0; i < blocks.size(); ++i) {
-                inverses[i] = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
-                                                 blocks[i].rows).inverse();
+            for (long i = 0; i < blocks.size(); ++i) {
+                inverses[i] = std::pair<ulonglong, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>>(i, 
+					this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols, blocks[i].rows).inverse());
             }
+            auto nInverses = blocks.size();
 
 //            Eigen::ColumnVector<Scalar, SIZE> buffer(this->solution);
 
+
             auto iteration = 0L;
+            std::vector<int> index;
+
+
             for (iteration; iteration < this->iterations; ++iteration) {
 
                 // Calculate the solution in parallel
-                #pragma omp parallel for firstprivate(old_solution) schedule(dynamic)
+                #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
                 for (int i = 0; i < inverses.size(); ++i) {
 
-                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> oldBlock = old_solution.segment(blocks[i].startCol,
+                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(blocks[i].startCol,
                                                                                                blocks[i].cols);
 
-                    auto zeroBlock = old_solution.segment(blocks[i].startCol, blocks[i].cols);
+                    auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
 
                     zeroBlock.setZero();
 
-                    // the odd indexes updates the odd b and the even updates the even b
-                    if (i%2) {
-                        auto block = odd_solution.segment(blocks[i].startCol, blocks[i].cols);
-                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i].startCol,
-                                                                                               blocks[i].cols);
-                    } else {
-                        auto block = even_solution.segment(blocks[i].startCol,blocks[i].cols);
-                        block = inverses[i] * (this->b - (this->A * old_solution)).segment(blocks[i].startCol,
-                                                                                                     blocks[i].cols);
+                    auto block = inverses[i].first%2 ? odd_solution.segment(blocks[i].startCol, blocks[i].cols) :
+                                 even_solution.segment(blocks[i].startCol, blocks[i].cols);
+
+                    block = inverses[i].second * (this->b - (this->A * oldSolution)).segment(blocks[i].startCol,
+                                                                                           blocks[i].cols);
+
+                    if ((oldBlock - block).template lpNorm<1>() / block.size() <= this->tolerance) {
+                        #pragma omp critical
+                        index.emplace_back(i);
                     }
 
                     zeroBlock = oldBlock;
+
                 }
 
                 // average of the two values
@@ -92,18 +97,21 @@ namespace Iterative {
                 this->solution.head(overlap) = even_solution.head(overlap);
 
                 // not overlapping end portion of the solution b
-                this->solution.tail(overlap) = inverses.size()%2 ?
+                this->solution.tail(overlap) = nInverses%2 ?
                                                even_solution.tail(overlap) : odd_solution.tail(overlap);
 
 
-                //compute the error
-                error += (this->solution - old_solution).template lpNorm<1>();
-                // check the error
-                error /= this->solution.size();
-                if (error <= this->tolerance) break;
+                if (!index.empty()) {
+                    std::sort(index.rbegin(), index.rend());
+                    for (auto i : index) {
+                        blocks.erase(blocks.begin() + i);
+                        inverses.erase(inverses.begin() + i);
+                    }
+                    index.clear();
+                    if (inverses.empty()) break;
+                }
 
-                std::swap(this->solution, old_solution);
-
+                std::swap(this->solution, oldSolution);
             }
             std::cout << iteration << std::endl;
             return Eigen::ColumnVector<Scalar, SIZE>(this->solution);

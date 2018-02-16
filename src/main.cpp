@@ -39,12 +39,12 @@ int main(const int argc, const char* argv[]) {
 
 
 
-    for (int i = 0; i < 10; ++i) {
+//    for (int i = 0; i < 10; ++i) {
 
-    denseBlocksJacobi<float , 4 > marco2(matrix, test, 100, 0.f, 8, 2);
-    denseOverlappingJacobi<float , 4 > marco3(matrix, test, 100, 0.f, 8, 2);
+    denseBlocksJacobi<float , 4 > marco2(matrix, test, 100, 0.000001, 8, 2);
+    denseOverlappingJacobi<float , 4 > marco3(matrix, test, 1000, 0.000001, 8, 2);
 
-    asyncBlocksJacobi<float, 4> marco4(matrix, test, 100, 0, 8, 2, 0);
+    asyncBlocksJacobi<float, 4> marco4(matrix, test, 100, 0.000001, 8, 2, 0);
 
     cout << marco2.solve().transpose() << endl;
 
@@ -52,7 +52,7 @@ int main(const int argc, const char* argv[]) {
 
     cout << marco4.solve().transpose() << endl;
 
-    }
+//    }
 
 //    create_matrix<SparseMatrix, float, 4>;
 //

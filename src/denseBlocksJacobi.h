@@ -99,6 +99,7 @@ namespace Iterative {
 				}
 				std::swap(this->solution, oldSolution);
 
+
 			}
             std::cout << iteration << std::endl;
 			return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
