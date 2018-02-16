@@ -3,6 +3,7 @@
 #include "denseBlocksJacobi.h"
 #include "denseOverlappingJacobi.h"
 #include "asyncBlocksJacobi.h"
+#include "asyncOverlappingJacobi.h"
 //#include "test.h"
 
 using namespace std;
@@ -42,15 +43,17 @@ int main(const int argc, const char* argv[]) {
 //    for (int i = 0; i < 10; ++i) {
 
     denseBlocksJacobi<float , 4 > marco2(matrix, test, 100, 0.000001, 8, 2);
-    denseOverlappingJacobi<float , 4 > marco3(matrix, test, 1000, 0.000001, 8, 2);
-
+    denseOverlappingJacobi<float , 4 > marco3(matrix, test, 100, 0.000001, 8, 2);
     asyncBlocksJacobi<float, 4> marco4(matrix, test, 100, 0.000001, 8, 2, 0);
+    asyncOverlappingJacobi<float , 4 > marco5(matrix, test, 100, 0.000001, 8, 2);
 
     cout << marco2.solve().transpose() << endl;
 
     cout << marco3.solve().transpose() << endl;
 
     cout << marco4.solve().transpose() << endl;
+
+    cout << marco5.solve().transpose() << endl;
 
 //    }
 
