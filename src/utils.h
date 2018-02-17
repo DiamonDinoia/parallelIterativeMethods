@@ -5,6 +5,7 @@
 #ifndef PARALLELITERATIVE_UTILS_H
 #define PARALLELITERATIVE_UTILS_H
 
+#include <chrono>
 #include "Eigen"
 
 namespace Eigen {
@@ -49,6 +50,8 @@ namespace Iterative {
 //		}
 	};
 
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::duration<double> dsec;
 
 
 	template <typename T>
@@ -59,24 +62,22 @@ namespace Iterative {
 	}
 
 
+//	template <typename T>
+//	void generate_vector(const ulong size, std::vector<T>& v, const T min, const T max) {
+//		for (int i = 0; i < size; ++i) { v.emplace_back(rand_t(min, max)); }
+//	}
+
+
 	template <typename T>
-	void generate_vector(const ulong size, std::vector<T>& v, const T min, const T max) {
-		for (int i = 0; i < size; ++i) { v.emplace_back(rand_t(min, max)); }
-	}
+	void generate_diagonal_dominant_matrix(T& matrix) {
+        for (int i = 0; i < matrix.rows(); ++i) {
+            matrix.row(i)=matrix.row(i)/matrix.row(i).max();
+            auto value = matrix.row(i).template lpNorm<1>();
+            value-=matrix(i,i);
+            matrix(i,i)=value;
 
+        }
 
-	template <typename Scalar, ulonglong Size>
-	void generate_diagonal_dominant_matrix(const ulong size, Eigen::Matrix<Scalar, Size, Size>& matrix,
-	                                       const Scalar min, const Scalar max) {
-		if (Size == Eigen::Dynamic)
-			matrix = Eigen::Matrix<Scalar, Size, Size>::Random(size);
-		else matrix = Eigen::Matrix<Scalar, Size, Size>::Random();
-		//        for (ulong i = 0; i < size; ++i) {
-		//            T sum = T(0);
-		//            for (auto &val: A[i]) sum += abs(val);
-		//            sum -= abs(A[i][i]);
-		//            A[i][i] = abs(A[i][i]) + sum;
-		//        }
 	}
 
 	template <typename T>

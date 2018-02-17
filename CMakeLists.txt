@@ -27,8 +27,9 @@ endif()
 #    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 #endif(CCACHE_FOUND)
 
-
-set(SOURCE_FILES src/main.cpp src/denseBlocksJacobi.h src/utils.h src/jacobi.h src/denseOverlappingJacobi.h)
+#file(GLOB SOURCE_FILES "src/*.cpp" "src/*.h*")
+set(SOURCE_FILES src/main.cpp src/denseBlocksJacobi.h src/utils.h src/jacobi.h src/denseOverlappingJacobi.h
+        src/asyncJacobi src/asyncBlocksJacobi.h src/asyncOverlappingJacobi.h)
 
 add_executable(parallelIterative ${SOURCE_FILES})
 
