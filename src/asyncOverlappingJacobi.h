@@ -52,7 +52,7 @@ namespace Iterative {
             #pragma omp parallel for
             for (long i = 0; i < blocks.size(); ++i) {
                 inverses[i] = std::pair<ulonglong, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>>(i,
-                                                                                                          this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols, blocks[i].rows).inverse());
+                       this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols, blocks[i].rows).inverse());
             }
             auto nInverses = blocks.size();
 
@@ -69,6 +69,15 @@ namespace Iterative {
                 #pragma omp parallel
                 #pragma omp for private(oldSolution) schedule(dynamic) nowait
                 for (int i = 0; i < inverses.size(); ++i) {
+
+                    this->solution = (even_solution + odd_solution)/(Scalar)2.;
+
+                    // not overlapping portion of the solution b
+                    this->solution.head(overlap) = even_solution.head(overlap);
+
+                    // not overlapping end portion of the solution b
+                    this->solution.tail(overlap) = nInverses%2 ?
+                                                   even_solution.tail(overlap) : odd_solution.tail(overlap);
 
                     oldSolution = this->solution;
 
@@ -92,19 +101,9 @@ namespace Iterative {
 
                     zeroBlock = oldBlock;
 
-                    this->solution = (even_solution + odd_solution)/(Scalar)2.;
-
-                    // not overlapping portion of the solution b
-                    this->solution.head(overlap) = even_solution.head(overlap);
-
-                    // not overlapping end portion of the solution b
-                    this->solution.tail(overlap) = nInverses%2 ?
-                                                   even_solution.tail(overlap) : odd_solution.tail(overlap);
 
                 }
-//                #pragma omp single
                 // average of the two values
-
                 if (!index.empty()) {
                     #pragma omp barrier
 
@@ -119,8 +118,6 @@ namespace Iterative {
                         stop = inverses.empty();
                     };
                 }
-
-                std::swap(this->solution, oldSolution);
             }
             std::cout << iteration << std::endl;
             return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
