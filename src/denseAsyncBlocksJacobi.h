@@ -2,20 +2,20 @@
 // Created by mbarb on 14/02/2018.
 //
 
-#ifndef PARALLELITERATIVE_ASYNCBLOCKJACOBI_H
-#define PARALLELITERATIVE_ASYNCBLOCKJACOBI_H
+#ifndef PARALLELITERATIVE_DENSEASYNCBLOCKJACOBI_H
+#define PARALLELITERATIVE_DENSEASYNCBLOCKJACOBI_H
 
 
+#include <Eigen>
 #include <iostream>
-#include "Eigen"
-#include "utils.h"
-#include "jacobi.h"
 #include <omp.h>
+#include "utils.h"
+#include "denseParallelJacobi.h"
 
 namespace Iterative {
 
     template <typename Scalar, long long SIZE>
-    class asyncBlocksJacobi : public jacobi<Scalar, SIZE> {
+    class denseAsyncBlocksJacobi : public denseParallelJacobi<Scalar, SIZE> {
 
     public:
         /**
@@ -27,15 +27,14 @@ namespace Iterative {
          * @param workers number of threads
          * @param blockSize size of the block
          */
-	    explicit asyncBlocksJacobi(
+	    explicit denseAsyncBlocksJacobi(
 		    const Eigen::Matrix<Scalar, SIZE, SIZE>& matrix,
 		    const Eigen::ColumnVector<Scalar, SIZE>& vector,
 		    const ulonglong iterations,
 		    const Scalar tolerance,
 		    const ulong workers=0L,
-		    const ulonglong blockSize = 0L,
-		    const unsigned int async = 4):
-                jacobi<Scalar,SIZE>::jacobi(matrix, vector, iterations, tolerance, workers), async(async) {
+		    const ulonglong blockSize = 0L):
+                denseParallelJacobi<Scalar,SIZE>::denseParallelJacobi(matrix, vector, iterations, tolerance, workers) {
 
             this->blockSize = blockSize;
 
@@ -120,7 +119,6 @@ namespace Iterative {
     protected:
         ulonglong blockSize;
         std::vector<Index> blocks;
-        const unsigned int async;
 
         void splitter() {
             for (ulonglong i = 0; i < this->A.cols(); i += blockSize) {

@@ -985,8 +985,8 @@ void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest
   m_sluFerr.resize(rhsCols);
   m_sluBerr.resize(rhsCols);
   
-  Ref<const Matrix<typename Rhs::Scalar,Dynamic,Dynamic,ColMajor> > b_ref(b);
-  Ref<const Matrix<typename Dest::Scalar,Dynamic,Dynamic,ColMajor> > x_ref(x);
+  Ref<const SparseMatrix<typename Rhs::Scalar,Dynamic,Dynamic,ColMajor> > b_ref(b);
+  Ref<const SparseMatrix<typename Dest::Scalar,Dynamic,Dynamic,ColMajor> > x_ref(x);
   
   m_sluB = SluMatrix::Map(b_ref.const_cast_derived());
   m_sluX = SluMatrix::Map(x_ref.const_cast_derived());

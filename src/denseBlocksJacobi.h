@@ -2,18 +2,18 @@
 // Created by mbarb on 23/01/2018.
 //
 
-#ifndef PARALLELITERATIVE_BLOCKSJACOBI_H
-#define PARALLELITERATIVE_BLOCKSJACOBI_H
+#ifndef PARALLELITERATIVE_DENSEBLOCKSJACOBI_H
+#define PARALLELITERATIVE_DENSEBLOCKSJACOBI_H
 
 
 #include "Eigen"
 #include "utils.h"
-#include "jacobi.h"
+#include "denseParallelJacobi.h"
 
 namespace Iterative {
 
 	template <typename Scalar, long long SIZE>
-	class denseBlocksJacobi : public jacobi<Scalar, SIZE> {
+	class denseBlocksJacobi : public denseParallelJacobi<Scalar, SIZE> {
 
 	public:
 		/**
@@ -32,7 +32,7 @@ namespace Iterative {
 			const Scalar tolerance,
 			const ulong workers = 0L,
 			const ulonglong blockSize = 0L) :
-			jacobi<Scalar, SIZE>::jacobi(A, b, iterations, tolerance, workers) {
+			denseParallelJacobi<Scalar, SIZE>::denseParallelJacobi(A, b, iterations, tolerance, workers) {
 
 			this->blockSize = blockSize;
 
@@ -82,7 +82,7 @@ namespace Iterative {
 
                     zeroBlock = oldBlock;
 
-					if ((oldBlock - block).template lpNorm<1>() / block.size() <= this->tolerance) {
+					if ((oldBlock - block).template lpNorm<1>() <= this->tolerance*block.size()) {
                         #pragma omp critical
 						index.emplace_back(i);
 					}

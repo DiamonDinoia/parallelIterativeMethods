@@ -1,16 +1,19 @@
 //
-// Created by mbarb on 24/01/2018.
+// Created by mbarb on 17/02/2018.
 //
 
-#ifndef PARALLELITERATIVE_JACOBI_H
-#define PARALLELITERATIVE_JACOBI_H
+#ifndef PARALLELITERATIVE_DENSEASYNCJACOBI_H
+#define PARALLELITERATIVE_DENSEASYNCJACOBI_H
 
 #include <omp.h>
+#include <Eigen>
+#include <iostream>
+#include "utils.h"
 
 namespace Iterative {
 
     template <typename Scalar, long long SIZE>
-    class jacobi {
+    class denseAsyncJacobi {
 
     public:
         /**
@@ -21,23 +24,22 @@ namespace Iterative {
          * @param tolerance min error tolerated
          * @param workers  number of threads
          */
-        explicit jacobi(
+        explicit denseAsyncJacobi(
                 const Eigen::Matrix<Scalar, SIZE, SIZE>& A,
                 const Eigen::ColumnVector<Scalar, SIZE>& b,
                 const ulonglong iterations,
                 const Scalar tolerance,
                 const ulong workers=0L) :
                 A(A), b(b), iterations(iterations), tolerance(tolerance),
-                workers(workers), solution(b) {
+                workers(workers),solution(b) {
 
             solution.setZero();
             omp_set_num_threads(workers);
+
         }
 
         Eigen::ColumnVector<Scalar, SIZE> solve() {
 
-
-            Eigen::ColumnVector<Scalar, SIZE> oldSolution(solution);
 
             std::vector<ulonglong> index(solution.size());
 
@@ -52,11 +54,13 @@ namespace Iterative {
                 // initialize the error
                 Scalar error = tolerance - tolerance;
                 //calculate solutions parallelizing on rows
-                #pragma omp parallel for schedule(auto)
+                #pragma omp parallel
+                #pragma omp for schedule(dynamic) nowait
                 for (long long i = 0; i < index.size(); ++i){
                     auto el = index[i];
-                    solution[el] = solution_find(b[el], el, oldSolution);
-                    error = solution[el]-oldSolution[el];
+                    auto oldElement = solution[el];
+                    solution[el] = solution_find(b[el], el);
+                    error = solution[el]-oldElement;
                     if(error <= tolerance){
                         #pragma omp critical
                         remove.emplace_back(i);
@@ -64,6 +68,7 @@ namespace Iterative {
                 }
 
                 if(!remove.empty()){
+                    #pragma omp barrier
                     std::sort(remove.rbegin(), remove.rend());
                     for (auto i : remove) {
                         index.erase(index.begin() + i);
@@ -72,15 +77,9 @@ namespace Iterative {
                     if (index.empty()) break;
                 }
 
-                //compute the error norm 1 weighted on the size of the A
-//                error += (solution - oldSolution).template lpNorm<1>();
-                // check the error
-//                error /= solution.size();
-//                if (error <= tolerance) break;
-                std::swap(solution, oldSolution);
             }
             std::cout << iteration << std::endl;
-            return solution;
+            return Eigen::ColumnVector<Scalar,SIZE>(solution);
         }
 
     protected:
@@ -104,13 +103,12 @@ namespace Iterative {
         * @param index index of the solution
         * @return solution component
         */
-        inline Scalar solution_find(Scalar term, const ulonglong index, Eigen::ColumnVector<Scalar,SIZE>& oldSolution) {
-            term -= A.row(index) * oldSolution;
-            return (term + A(index, index) * oldSolution[index]) / A(index, index);
+        inline Scalar solution_find(Scalar term, const ulonglong index) {
+            term -= A.row(index) * solution;
+            return (term + A(index, index) * solution[index]) / A(index, index);
         }
 
     };
 };
 
-
-#endif //PARALLELITERATIVE_JACOBI_H
+#endif //PARALLELITERATIVE_ASYNCJACOBI_H

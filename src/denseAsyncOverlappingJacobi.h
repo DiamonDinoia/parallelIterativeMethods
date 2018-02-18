@@ -2,25 +2,24 @@
 // Created by mbarb on 16/02/2018.
 //
 
-#ifndef PARALLELITERATIVE_ASYNCOVERLAPPINGJACOBI_H
-#define PARALLELITERATIVE_ASYNCOVERLAPPINGJACOBI_H
+#ifndef PARALLELITERATIVE_DENSEASYNCOVERLAPPINGJACOBI_H
+#define PARALLELITERATIVE_DENSEASYNCOVERLAPPINGJACOBI_H
 
 
 
-#include "Eigen"
-#include "utils.h"
-#include "jacobi.h"
-#include <typeinfo>
+#include <Eigen>
 #include <iostream>
+#include "utils.h"
+#include "denseParallelJacobi.h"
 
 
 namespace Iterative {
 
     template <typename Scalar, long long SIZE>
-    class asyncOverlappingJacobi : public jacobi<Scalar, SIZE> {
+    class denseAsyncOverlappingJacobi : public denseParallelJacobi<Scalar, SIZE> {
     public:
 
-        explicit asyncOverlappingJacobi(
+        explicit denseAsyncOverlappingJacobi(
                 const Eigen::Matrix<Scalar, SIZE, SIZE>& A,
                 const Eigen::ColumnVector<Scalar, SIZE>& b,
                 const ulonglong iterations,
@@ -28,7 +27,7 @@ namespace Iterative {
                 const ulong workers=0L,
                 const ulonglong blockSize = 0L,
                 const ulonglong overlap = 0L) :
-                jacobi<Scalar,SIZE>::jacobi(A, b, iterations, tolerance, workers) {
+                denseParallelJacobi<Scalar,SIZE>::denseParallelJacobi(A, b, iterations, tolerance, workers) {
 
             this->blockSize = blockSize;
             if (blockSize == 0)

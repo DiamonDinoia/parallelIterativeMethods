@@ -9,14 +9,13 @@
 
 #include "Eigen"
 #include "utils.h"
-#include "jacobi.h"
-#include <typeinfo>
+#include "denseParallelJacobi.h"
 
 
 namespace Iterative {
 
     template <typename Scalar, long long SIZE>
-    class denseOverlappingJacobi : public jacobi<Scalar, SIZE> {
+    class denseOverlappingJacobi : public denseParallelJacobi<Scalar, SIZE> {
     public:
 
         explicit denseOverlappingJacobi(
@@ -27,7 +26,7 @@ namespace Iterative {
                 const ulong workers=0L,
                 const ulonglong blockSize = 0L,
                 const ulonglong overlap = 0L) :
-                jacobi<Scalar,SIZE>::jacobi(A, b, iterations, tolerance, workers) {
+                denseParallelJacobi<Scalar,SIZE>::denseParallelJacobi(A, b, iterations, tolerance, workers) {
 
             this->blockSize = blockSize;
             if (blockSize == 0)
