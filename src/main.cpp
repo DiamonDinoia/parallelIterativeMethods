@@ -48,11 +48,11 @@ int main(const int argc, const char* argv[]) {
 //
 //	auto tmp = marco.solve();
 
-	const int size = 1024;
-	const int iterations = 100;
-	const auto tolerance = 0.0000001f;
+	const int size = 16384*4;
+	const int iterations = 10;
+	const auto tolerance = 0.01;
 	const auto workers = 8;
-    auto blockSize = 3;
+    auto blockSize = 256;
 
 
     auto error = 0.;
@@ -74,13 +74,15 @@ int main(const int argc, const char* argv[]) {
         A(i,i) = value;
 
     }
+
+
 	denseSerialJacobi<double, Dynamic> serialJacobi(A, b, iterations, tolerance);
 	denseParallelJacobi<double, Dynamic> jacobi(A, b, iterations, tolerance, workers);
     denseAsyncJacobi<double, Dynamic> asyncJacobi(A, b, iterations, tolerance, workers);
     denseBlocksJacobi<double , Dynamic> denseBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     denseOverlappingJacobi<double , Dynamic> denseOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
     denseAsyncBlocksJacobi<double, Dynamic> asyncBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
-    denseAsyncOverlappingJacobi<double , Dynamic> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);    Matrix<double, Dynamic, Dynamic> A =
+    denseAsyncOverlappingJacobi<double , Dynamic> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
 
 
     #endif
@@ -88,7 +90,7 @@ int main(const int argc, const char* argv[]) {
 
     #ifdef SPARSE
 
-
+    srand(42);
 
     SparseMatrix<double>A(size,size);
 
@@ -104,32 +106,16 @@ int main(const int argc, const char* argv[]) {
 
     A.setFromTriplets(triplets.begin(),triplets.end());
 
-
-//    for (int i = 0; i < size*10; ++i) {
-//        A.insert(Eigen::Index(rand()%size),Eigen::Index(rand()%size))=(double)rand();
-//    }
-
-
-
-//    for (int i = 0; i < size; ++i) {
-//        b.insert(i) = (double)rand();
-//    }
-
     #pragma omp parallel for schedule(static)
     for (int i = 0; i < size; ++i) {
-//        A.row(i)*=10000000;
-//        A(i,i)=0.0000000005;
         auto sum=0.;
         for (int j = 0; j < size; ++j) {
             sum+=abs(A.coeff(i,j));
         }
-        //        value-=A(i,i);
         A.coeffRef(i,i) = sum;
-
-
     }
 
-//    A.makeCompressed();
+    A.makeCompressed();
 
 	sparseSerialJacobi<double> denseSerialJacobi(A, b, iterations, tolerance);
 	sparseParallelJacobi<double> jacobi(A, b, iterations, tolerance, workers);
