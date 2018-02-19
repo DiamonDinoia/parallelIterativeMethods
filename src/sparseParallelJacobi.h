@@ -75,11 +75,6 @@ namespace Iterative {
                     if (index.empty()) break;
                 }
 
-                //compute the error norm 1 weighted on the size of the A
-//                error += (solution - oldSolution).template lpNorm<1>();
-                // check the error
-//                error /= solution.size();
-//                if (error <= tolerance) break;
                 std::swap(solution, oldSolution);
             }
             std::cout << iteration << std::endl;

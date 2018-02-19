@@ -61,7 +61,7 @@ namespace Iterative {
 				Eigen::Matrix<Scalar,Eigen::Dynamic, Eigen::Dynamic> I(block.rows(),block.cols());
 				I.setIdentity();
 
-				inverses[i] = solver.solve(I);;
+				inverses[i] = solver.solve(I);
 //				inverses[i] = block.inverse();
 			}
 
@@ -88,7 +88,7 @@ namespace Iterative {
 					block = inverses[i] *
 						(this->b - (this->A * oldSolution)).segment(blocks[i].startCol, blocks[i].cols);
 
-                    zeroBlock = oldBlock;
+                    zeroBlock = block;
 
 					if ((oldBlock - block).template lpNorm<1>() <= this->tolerance*block.size()) {
                         #pragma omp critical

@@ -7,7 +7,6 @@
 
 #include <Eigen>
 #include <iostream>
-#include <src/Core/Matrix.h>
 #include "utils.h"
 
 namespace Iterative {
@@ -72,7 +71,7 @@ namespace Iterative {
                 std::swap(solution, oldSolution);
             }
             std::cout << iteration << std::endl;
-            return solution;
+            return  Eigen::ColumnVector<Scalar, SIZE> (solution);
         }
 
     protected:

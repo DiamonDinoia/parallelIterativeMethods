@@ -67,8 +67,11 @@ namespace Iterative {
                 #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
                 for (int i = 0; i < inverses.size(); ++i) {
 
-                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(blocks[i].startCol,
-                                                                                               blocks[i].cols);
+//                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(blocks[i].startCol,
+//                                                                                               blocks[i].cols);
+                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = inverses[i].first%2 ?
+                                               odd_solution.segment(blocks[i].startCol, blocks[i].cols) :
+                                                   even_solution.segment(blocks[i].startCol, blocks[i].cols);
 
                     auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
 
@@ -85,7 +88,7 @@ namespace Iterative {
                         index.emplace_back(i);
                     }
 
-                    zeroBlock = oldBlock;
+                    zeroBlock = block;
 
                 }
 

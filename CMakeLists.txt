@@ -13,6 +13,7 @@ include_directories(SYSTEM lib/Eigen)
 link_directories(lib/Eigen)
 
 add_definitions(-DSPARSE)
+#add_definitions(-DDENSE)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)

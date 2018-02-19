@@ -25,7 +25,7 @@ using namespace Iterative;
 
 int main(const int argc, const char* argv[]) {
 
-    Eigen::setNbThreads(1);
+    Eigen::setNbThreads(2);
 
 	//std::cout << "Hello, World!" << std::endl;
 
@@ -49,8 +49,8 @@ int main(const int argc, const char* argv[]) {
 //	auto tmp = marco.solve();
 
 	const int size = 16384*4;
-	const int iterations = 10;
-	const auto tolerance = 0.01;
+	const int iterations = 100;
+	const auto tolerance = 0.0000001;
 	const auto workers = 8;
     auto blockSize = 256;
 
@@ -59,28 +59,22 @@ int main(const int argc, const char* argv[]) {
 
 	ColumnVector<double, Dynamic> b = ColumnVector<double, Dynamic>::Random(size);
 
-    #ifdef Dense
+    #ifdef DENSE
 
-//    Matrix<float, size, size> A = Matrix<float, size, size>::Random();
-    Matrix<double, Dynamic, Dynamic> A =
-            Matrix<double, Dynamic, Dynamic>::Random(size,size);
+    Matrix<double, Dynamic, Dynamic> A = Matrix<double, Dynamic, Dynamic>::Random(size,size);
 
     #pragma omp parallel for schedule(static)
     for (int i = 0; i < A.rows(); ++i) {
-//        A.row(i)*=10000000;
-//        A(i,i)=0.0000000005;
         auto value = A.row(i).template lpNorm<1>();
-//        value-=A(i,i);
         A(i,i) = value;
-
     }
 
 
 	denseSerialJacobi<double, Dynamic> serialJacobi(A, b, iterations, tolerance);
-	denseParallelJacobi<double, Dynamic> jacobi(A, b, iterations, tolerance, workers);
+	denseParallelJacobi<double, Dynamic> parallelJacobi(A, b, iterations, tolerance, workers);
     denseAsyncJacobi<double, Dynamic> asyncJacobi(A, b, iterations, tolerance, workers);
-    denseBlocksJacobi<double , Dynamic> denseBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
-    denseOverlappingJacobi<double , Dynamic> denseOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
+    denseBlocksJacobi<double , Dynamic> blocksJacobi(A, b, iterations, tolerance, workers, blockSize);
+    denseOverlappingJacobi<double , Dynamic> overlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
     denseAsyncBlocksJacobi<double, Dynamic> asyncBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     denseAsyncOverlappingJacobi<double , Dynamic> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
 
@@ -98,10 +92,10 @@ int main(const int argc, const char* argv[]) {
 
     vector<T> triplets;
 
-    for (int i = 0; i < 4*size; ++i) {
-        triplets.emplace_back(T(abs(rand())%size,abs(rand())%size,(double)rand()/RAND_MAX));
+    for (int i = 0; i < 100*size; ++i) {
+        triplets.emplace_back(T(abs(rand())%size,abs(rand())%size,(double)rand()*1000/RAND_MAX));
         if(i<size)
-            triplets.emplace_back(T(i,i,(double)rand()/RAND_MAX));
+            triplets.emplace_back(T(i,i,(double)rand()*1000/RAND_MAX));
     }
 
     A.setFromTriplets(triplets.begin(),triplets.end());
@@ -117,52 +111,59 @@ int main(const int argc, const char* argv[]) {
 
     A.makeCompressed();
 
-	sparseSerialJacobi<double> denseSerialJacobi(A, b, iterations, tolerance);
-	sparseParallelJacobi<double> jacobi(A, b, iterations, tolerance, workers);
-    sparseAsyncJacobi<double> asyncJacobi(A, b, iterations, tolerance, workers);
-    sparseBlocksJacobi<double> denseBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
-    sparseOverlappingJacobi<double> denseOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
+//	sparseSerialJacobi<double> serialJacobi(A, b, iterations, tolerance);
+//	sparseParallelJacobi<double> parallelJacobi(A, b, iterations, tolerance, workers);
+//    sparseAsyncJacobi<double> asyncJacobi(A, b, iterations, tolerance, workers);
+    sparseBlocksJacobi<double> blocksJacobi(A, b, iterations, tolerance, workers, blockSize);
+    sparseOverlappingJacobi<double> overlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseAsyncBlocksJacobi<double> asyncBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseAsyncOverlappingJacobi<double> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
 
     #endif
 
+    cout << "Sequential" << endl;
     auto start_time = Time::now();
-    error = (b-A*denseSerialJacobi.solve()).template lpNorm<1>()/size;
+//    error = (b-A*serialJacobi.solve()).template lpNorm<1>()/size;
     auto end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
+    cout << "Parallel" << endl;
     start_time = Time::now();
-    error = (b-A*jacobi.solve()).template lpNorm<1>()/size;
+//    error = (b-A*parallelJacobi.solve()).template lpNorm<1>()/size;
     end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
+    cout << "Parallel async" << endl;
     start_time = Time::now();
-    error = (b-A*asyncJacobi.solve()).template lpNorm<1>()/size;
+//    error = (b-A*asyncJacobi.solve()).template lpNorm<1>()/size;
     end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
+    cout << "Parallel blocks" << endl;
     start_time = Time::now();
-    error = (b-A*denseBlocksJacobi.solve()).template lpNorm<1>()/size;
+    error = (b-A*blocksJacobi.solve()).template lpNorm<1>()/size;
     end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
+    cout << "Parallel overlapping" << endl;
     start_time = Time::now();
-    error = (b-A*denseOverlappingJacobi.solve()).template lpNorm<1>()/size;
+    error = (b-A*overlappingJacobi.solve()).template lpNorm<1>()/size;
     end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
+    cout << "Parallel async blocks" << endl;
     start_time = Time::now();
     error = (b-A*asyncBlocksJacobi.solve()).template lpNorm<1>()/size;
     end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
+    cout << "Parallel async overlapping blocks" << endl;
     start_time = Time::now();
     error = (b-A*asyncOverlappingJacobi.solve()).template lpNorm<1>()/size;
     end_time = Time::now();

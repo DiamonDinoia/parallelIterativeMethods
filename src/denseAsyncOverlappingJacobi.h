@@ -66,22 +66,16 @@ namespace Iterative {
 
                 // Calculate the solution in parallel
                 #pragma omp parallel
-                #pragma omp for private(oldSolution) schedule(dynamic) nowait
+                #pragma omp for firstprivate(oldSolution) schedule(dynamic) nowait
                 for (int i = 0; i < inverses.size(); ++i) {
 
-                    this->solution = (even_solution + odd_solution)/(Scalar)2.;
+//
+//                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(blocks[i].startCol,
+//                                                                                               blocks[i].cols);
 
-                    // not overlapping portion of the solution b
-                    this->solution.head(overlap) = even_solution.head(overlap);
-
-                    // not overlapping end portion of the solution b
-                    this->solution.tail(overlap) = nInverses%2 ?
-                                                   even_solution.tail(overlap) : odd_solution.tail(overlap);
-
-                    oldSolution = this->solution;
-
-                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(blocks[i].startCol,
-                                                                                               blocks[i].cols);
+                    Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = inverses[i].first%2 ?
+                                           odd_solution.segment(blocks[i].startCol, blocks[i].cols) :
+                                                   even_solution.segment(blocks[i].startCol, blocks[i].cols);
 
                     auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
 
@@ -98,10 +92,26 @@ namespace Iterative {
                         index.emplace_back(i);
                     }
 
-                    zeroBlock = oldBlock;
+                    zeroBlock = block;
 
 
                 }
+
+                #pragma omp single nowait
+                {
+
+                    this->solution = (even_solution + odd_solution)/(Scalar)2.;
+
+                    // not overlapping portion of the solution b
+                    this->solution.head(overlap) = even_solution.head(overlap);
+
+                    // not overlapping end portion of the solution b
+                    this->solution.tail(overlap) = nInverses%2 ?
+                                                   even_solution.tail(overlap) : odd_solution.tail(overlap);
+
+                    oldSolution = this->solution;
+                };
+
                 // average of the two values
                 if (!index.empty()) {
                     #pragma omp barrier

@@ -86,7 +86,7 @@ namespace Iterative {
                             (this->b - (this->A * oldSolution)).segment(blocks[i].startCol, blocks[i].cols);
 
 
-                    zeroBlock = oldBlock;
+                    zeroBlock = block;
 
 //                    std::cout << "CIAONE" << std::endl;
 

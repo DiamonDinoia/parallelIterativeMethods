@@ -50,7 +50,7 @@ namespace Iterative {
             std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses(blocks.size());
 
             // compute the inverses of the blocks and memorize it
-            #pragma omp parallel for
+            #pragma omp parallel for schedule(dynamic)
             for (int i = 0; i < blocks.size(); ++i) {
                 Eigen::SparseMatrix<Scalar> block = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
                                                                   blocks[i].rows);
@@ -92,7 +92,7 @@ namespace Iterative {
                             (this->b - (this->A * oldSolution)).segment(blocks[i].startCol, blocks[i].cols);
 
 
-                    zeroBlock = oldBlock;
+                    zeroBlock = block;
 
                     if ((oldBlock - block).template lpNorm<1>() / block.size() <= this->tolerance) {
                         #pragma omp critical
