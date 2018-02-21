@@ -2,18 +2,18 @@
 // Created by mbarb on 21/02/2018.
 //
 
-#ifndef PARALLELITERATIVE_SPAREFIXEDBLOCKSJACOBI_H
-#define PARALLELITERATIVE_SPAREFIXEDBLOCKSJACOBI_H
+#ifndef PARALLELITERATIVE_DENSEFIXEDBLOCKSJACOBI_H
+#define PARALLELITERATIVE_DENSEFIXEDBLOCKSJACOBI_H
 
 
 #include "Eigen"
 #include "utils.h"
-#include "sparseParallelJacobi.h"
+#include "denseParallelJacobi.h"
 
 namespace Iterative {
 
-    template <typename Scalar, int BLOCKSIZE>
-    class sparseFixedBlocksJacobi : public sparseParallelJacobi<Scalar> {
+    template <typename Scalar, long long SIZE, int BLOCKSIZE>
+    class denseFixedBlocksJacobi : public denseParallelJacobi<Scalar, SIZE> {
 
     public:
         /**
@@ -25,14 +25,14 @@ namespace Iterative {
          * @param workers number of threads
          * @param blockSize size of the block
          */
-        explicit sparseFixedBlocksJacobi(
-                const Eigen::SparseMatrix<Scalar>& A,
-                const Eigen::ColumnVector<Scalar, Eigen::Dynamic>& b,
+        explicit denseFixedBlocksJacobi(
+                const Eigen::Matrix<Scalar, SIZE, SIZE>& A,
+                const Eigen::ColumnVector<Scalar, SIZE>& b,
                 const ulonglong iterations,
                 const Scalar tolerance,
                 const ulong workers = 0L,
                 const ulonglong blockSize = 0L) :
-                sparseParallelJacobi<Scalar>::sparseParallelJacobi(A, b, iterations, tolerance, workers) {
+                denseParallelJacobi<Scalar, SIZE>::denseParallelJacobi(A, b, iterations, tolerance, workers) {
 
             this->blockSize = blockSize;
 
@@ -45,37 +45,17 @@ namespace Iterative {
          *
          * @return
          */
-        const Eigen::ColumnVector<Scalar, Eigen::Dynamic> &solve() {
+        const Eigen::ColumnVector<Scalar, SIZE> solve() {
 
-            Eigen::ColumnVector <Scalar, Eigen::Dynamic> oldSolution(this->solution);
-            std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic, Eigen::AutoAlign, BLOCKSIZE, BLOCKSIZE>>
+            Eigen::ColumnVector<Scalar, SIZE> oldSolution(this->solution);
+            std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::AutoAlign, BLOCKSIZE, BLOCKSIZE>>
                     inverses(blocks.size());
 
-            Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic, Eigen::AutoAlign, BLOCKSIZE, BLOCKSIZE>
-                    I(this->blockSize,this->blockSize);
-
-            I.setIdentity();
-            Eigen::SimplicialLDLT<Eigen::SparseMatrix<Scalar>> solver;
-
             // compute the inverses of the blocks and memorize it
-            #pragma omp parallel for private(solver)
-            for (int i = 0; i < blocks.size()-1; ++i) {
-                Eigen::SparseMatrix<Scalar> block = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
-                                                                  blocks[i].rows);
-                solver.compute(block);
-                inverses[i] = solver.solve(I);
-            }
-            {
-
-                Eigen::SparseMatrix<Scalar> block = this->A.block(blocks.back().startCol, blocks.back().startRow,
-                                                                  blocks.back().cols,blocks.back().rows);
-                if(block.cols()!=this->blockSize || block.rows()!=this->blockSize){
-                    I.resize(block.rows(), block.cols());
-                    I.setIdentity();
-                }
-                solver.compute(block);
-                inverses.back() = solver.solve(I);
-
+            #pragma omp parallel for
+            for (int i = 0; i < blocks.size(); ++i) {
+                inverses[i] = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
+                                            blocks[i].rows).inverse();
             }
 
             // start iterations
@@ -110,19 +90,33 @@ namespace Iterative {
                         index.emplace_back(i);
                     }
                 }
-
-                if (!index.empty()) {
-                    std::sort(index.rbegin(), index.rend());
-                    for (auto i : index) {
-                        if(i!=lastElem-1) {
-                            std::iter_swap(blocks.begin() + i, blocks.begin()+lastElem-1);
-                            std::iter_swap(inverses.begin() + i, inverses.begin()+lastElem-1);
+                if(BLOCKSIZE != Eigen::Dynamic){
+                    if (!index.empty()) {
+                        std::sort(index.rbegin(), index.rend());
+                        for (auto i : index) {
+                            if(i!=lastElem-1) {
+                                std::iter_swap(blocks.begin() + i, blocks.begin()+lastElem-1);
+                                std::iter_swap(inverses.begin() + i, inverses.begin()+lastElem-1);
+                            }
+                            lastElem--;
                         }
-                        lastElem--;
+                        if (lastElem<=0) break;
+                        index.clear();
                     }
-                    if (lastElem<=0) break;
-                    index.clear();
+
+                }else{
+                    if (!index.empty()) {
+                        std::sort(index.rbegin(), index.rend());
+                        for (auto i : index) {
+                            blocks.erase(blocks.begin() + i);
+                            inverses.erase(inverses.begin() + i);
+                        }
+                        index.clear();
+                        lastElem = inverses.size();
+                        if (inverses.empty()) break;
+                    }
                 }
+
                 std::swap(this->solution, oldSolution);
 
             }
@@ -149,4 +143,4 @@ namespace Iterative {
 }
 
 
-#endif //PARALLELITERATIVE_SPAREFIXEDBLOCKSJACOBI_H
+#endif //PARALLELITERATIVE_DENSEFIXEDBLOCKSJACOBI_H

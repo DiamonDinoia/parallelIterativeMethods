@@ -6,14 +6,13 @@ set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /arch:AVX /arch:SSE4 /arch:MMX")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -static")
-#message(${CMAKE_CXX_FLAGS})
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
 include_directories(SYSTEM lib/Eigen)
 link_directories(lib/Eigen)
 
-add_definitions(-DSPARSE)
-#add_definitions(-DDENSE)
+#add_definitions(-DSPARSE)
+add_definitions(-DDENSE)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)

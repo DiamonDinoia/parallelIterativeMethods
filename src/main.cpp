@@ -2,6 +2,7 @@
 #include <Eigen>
 #include <fstream>
 #include "denseBlocksJacobi.h"
+#include "denseFixedBlocksJacobi.h"
 #include "denseOverlappingJacobi.h"
 #include "denseAsyncBlocksJacobi.h"
 #include "denseAsyncOverlappingJacobi.h"
@@ -53,11 +54,11 @@ int main(const int argc, const char* argv[]) {
 //
 //	auto tmp = marco.solve();
 
-	const int size = 4096;
-	const int iterations = 100;
-	const auto tolerance = 0.000001;
-	const auto workers = 8;
-    const auto blockSize = 128;
+	const int size = 16384;
+	const int iterations = 5;
+	const auto tolerance = 0.000000;
+	const auto workers = 4;
+    const auto blockSize = 256;
 
 
     auto error = 0.;
@@ -66,6 +67,7 @@ int main(const int argc, const char* argv[]) {
     #ifdef DENSE
 
     Matrix<double, Dynamic, Dynamic> A = Matrix<double, Dynamic, Dynamic>::Random(size,size);
+    ColumnVector<double, Dynamic> b = ColumnVector<double, Dynamic>::Zero(size);
 
     #pragma omp parallel for schedule(static)
     for (int i = 0; i < A.rows(); ++i) {
@@ -73,11 +75,11 @@ int main(const int argc, const char* argv[]) {
         A(i,i) = value;
     }
 
-
-	denseSerialJacobi<double, Dynamic> serialJacobi(A, b, iterations, tolerance);
-	denseParallelJacobi<double, Dynamic> parallelJacobi(A, b, iterations, tolerance, workers);
-    denseAsyncJacobi<double, Dynamic> asyncJacobi(A, b, iterations, tolerance, workers);
+//	denseSerialJacobi<double, Dynamic> serialJacobi(A, b, iterations, tolerance);
+//	denseParallelJacobi<double, Dynamic> parallelJacobi(A, b, iterations, tolerance, workers);
+//    denseAsyncJacobi<double, Dynamic> asyncJacobi(A, b, iterations, tolerance, workers);
     denseBlocksJacobi<double , Dynamic> blocksJacobi(A, b, iterations, tolerance, workers, blockSize);
+    denseFixedBlocksJacobi<double , Dynamic, blockSize> fixedBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     denseOverlappingJacobi<double , Dynamic> overlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
     denseAsyncBlocksJacobi<double, Dynamic> asyncBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     denseAsyncOverlappingJacobi<double , Dynamic> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
@@ -131,7 +133,7 @@ int main(const int argc, const char* argv[]) {
 //	sparseParallelJacobi<double> parallelJacobi(A, b, iterations, tolerance, workers);
 //    sparseAsyncJacobi<double> asyncJacobi(A, b, iterations, tolerance, workers);
     sparseBlocksJacobi<double> blocksJacobi(A, b, iterations, tolerance, workers, blockSize);
-    sparseFixedBlocksJacobi<double,blockSize> fixedBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
+    sparseFixedBlocksJacobi<double, blockSize> fixedBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseOverlappingJacobi<double> overlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseAsyncBlocksJacobi<double> asyncBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseAsyncOverlappingJacobi<double> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
