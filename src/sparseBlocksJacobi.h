@@ -45,30 +45,43 @@ namespace Iterative {
 		 *
 		 * @return
 		 */
-		Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
+		const Eigen::ColumnVector<Scalar, Eigen::Dynamic> &solve() {
 
 			Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldSolution(this->solution);
 			std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses(blocks.size());
 
+            Eigen::Matrix<Scalar,Eigen::Dynamic, Eigen::Dynamic> I(this->blockSize,this->blockSize);
+            I.setIdentity();
+            Eigen::SimplicialLDLT<Eigen::SparseMatrix<Scalar>> solver;
 
 			// compute the inverses of the blocks and memorize it
-            #pragma omp parallel for
-			for (int i = 0; i < blocks.size(); ++i) {
+            #pragma omp parallel for firstprivate(I) private(solver)
+			for (int i = 0; i < blocks.size()-1; ++i) {
 				Eigen::SparseMatrix<Scalar> block = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
-										   blocks[i].rows);
-				Eigen::SimplicialLDLT solver(block);
-//				solver.compute(block);
-				Eigen::Matrix<Scalar,Eigen::Dynamic, Eigen::Dynamic> I(block.rows(),block.cols());
-				I.setIdentity();
-
+                                                                  blocks[i].rows);
+                solver.compute(block);
 				inverses[i] = solver.solve(I);
-//				inverses[i] = block.inverse();
 			}
+            {
+
+                Eigen::SparseMatrix<Scalar> block = this->A.block(blocks.back().startCol, blocks.back().startRow,
+                                                                  blocks.back().cols,blocks.back().rows);
+                if(block.cols()!=this->blockSize || block.rows()!=this->blockSize){
+                    I.resize(block.rows(), block.cols());
+                    I.setIdentity();
+                }
+                solver.compute(block);
+                inverses.back() = solver.solve(I);
+
+            }
+
 
 			// start iterations
 			auto iteration = 0L;
 
 			std::vector<int> index;
+
+            auto lastElem = inverses.size();
 
 			for (iteration; iteration < this->iterations; ++iteration) {
 
@@ -102,15 +115,14 @@ namespace Iterative {
 						blocks.erase(blocks.begin() + i);
 						inverses.erase(inverses.begin() + i);
 					}
-					index.clear();
 					if (inverses.empty()) break;
+					index.clear();
 				}
 				std::swap(this->solution, oldSolution);
 
-
 			}
             std::cout << iteration << std::endl;
-			return Eigen::ColumnVector<Scalar, Eigen::Dynamic>(this->solution);
+			return this->solution;
 		}
 
 	protected:

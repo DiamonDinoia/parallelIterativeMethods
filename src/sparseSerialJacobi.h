@@ -29,7 +29,7 @@ namespace Iterative {
                 const Scalar tolerance) :
                 A(A), b(b), iterations(iterations), tolerance(tolerance), solution(b) {
 
-            solution.setZero();
+            solution.fill((Scalar)1/solution.size());
         }
 
         Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
@@ -97,6 +97,11 @@ namespace Iterative {
         inline Scalar solution_find(Scalar term, const ulonglong index, Eigen::ColumnVector<Scalar, Eigen::Dynamic>& oldSolution) {
             term -= A.row(index) * oldSolution;
             return (term + A.coeff(index, index) * oldSolution[index]) / A.coeff(index, index);
+        }
+
+    public:
+        const Eigen::ColumnVector<Scalar, -1> &getSolution() const {
+            return solution;
         }
 
     };

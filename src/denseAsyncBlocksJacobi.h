@@ -116,6 +116,8 @@ namespace Iterative {
             return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
         }
 
+
+
     protected:
         ulonglong blockSize;
         std::vector<Index> blocks;

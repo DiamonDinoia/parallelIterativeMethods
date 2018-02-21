@@ -1,5 +1,6 @@
 #include <iostream>
 #include <Eigen>
+#include <fstream>
 #include "denseBlocksJacobi.h"
 #include "denseOverlappingJacobi.h"
 #include "denseAsyncBlocksJacobi.h"
@@ -14,8 +15,9 @@
 #include "sparseAsyncJacobi.h"
 #include "sparseParallelJacobi.h"
 #include "sparseSerialJacobi.h"
+#include "sparseFixedBlocksJacobi.h"
 //#include "test.h"
-
+#include "parser.h"
 
 using namespace std;
 using namespace Eigen;
@@ -25,7 +27,10 @@ using namespace Iterative;
 
 int main(const int argc, const char* argv[]) {
 
-    Eigen::setNbThreads(2);
+    Eigen::setNbThreads(1);
+
+
+    ifstream input(argv[1]);
 
 	//std::cout << "Hello, World!" << std::endl;
 
@@ -48,16 +53,15 @@ int main(const int argc, const char* argv[]) {
 //
 //	auto tmp = marco.solve();
 
-	const int size = 16384*4;
+	const int size = 4096;
 	const int iterations = 100;
-	const auto tolerance = 0.0000001;
+	const auto tolerance = 0.000001;
 	const auto workers = 8;
-    auto blockSize = 256;
+    const auto blockSize = 128;
 
 
     auto error = 0.;
 
-	ColumnVector<double, Dynamic> b = ColumnVector<double, Dynamic>::Random(size);
 
     #ifdef DENSE
 
@@ -86,7 +90,19 @@ int main(const int argc, const char* argv[]) {
 
     srand(42);
 
+//    SparseMatrix<double>A;
+//
+//    read_matrix<double>(A, input);
+//
+//    ColumnVector<double, Dynamic> b = ColumnVector<double, Dynamic>::Zero(A.cols());
+
+//    A = A.transpose();
+
     SparseMatrix<double>A(size,size);
+
+//    read_matrix<double>(A, input);
+
+    ColumnVector<double, Dynamic> b = ColumnVector<double, Dynamic>::Zero(A.cols());
 
     typedef Eigen::Triplet<double> T;
 
@@ -115,6 +131,7 @@ int main(const int argc, const char* argv[]) {
 //	sparseParallelJacobi<double> parallelJacobi(A, b, iterations, tolerance, workers);
 //    sparseAsyncJacobi<double> asyncJacobi(A, b, iterations, tolerance, workers);
     sparseBlocksJacobi<double> blocksJacobi(A, b, iterations, tolerance, workers, blockSize);
+    sparseFixedBlocksJacobi<double,blockSize> fixedBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseOverlappingJacobi<double> overlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseAsyncBlocksJacobi<double> asyncBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
     sparseAsyncOverlappingJacobi<double> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
@@ -127,6 +144,8 @@ int main(const int argc, const char* argv[]) {
     auto end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+
+//    cout << serialJacobi.getSolution().transpose() << endl;
 
     cout << "Parallel" << endl;
     start_time = Time::now();
@@ -145,6 +164,13 @@ int main(const int argc, const char* argv[]) {
     cout << "Parallel blocks" << endl;
     start_time = Time::now();
     error = (b-A*blocksJacobi.solve()).template lpNorm<1>()/size;
+    end_time = Time::now();
+    cout << "error: " << error << endl;
+    std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+
+    cout << "Parallel fixed blocks" << endl;
+    start_time = Time::now();
+    error = (b-A*fixedBlocksJacobi.solve()).template lpNorm<1>()/size;
     end_time = Time::now();
     cout << "error: " << error << endl;
     std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;

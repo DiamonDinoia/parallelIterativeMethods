@@ -33,7 +33,7 @@ namespace Iterative {
                 A(A), b(b), iterations(iterations), tolerance(tolerance),
                 workers(workers), solution(b) {
 
-            solution.setZero();
+            solution.fill((Scalar)1/solution.size());
             omp_set_num_threads(workers);
         }
 
@@ -78,6 +78,10 @@ namespace Iterative {
                 std::swap(solution, oldSolution);
             }
             std::cout << iteration << std::endl;
+            return solution;
+        }
+
+        const Eigen::ColumnVector<Scalar, -1> &getSolution() const {
             return solution;
         }
 

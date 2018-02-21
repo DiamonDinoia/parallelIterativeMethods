@@ -9,6 +9,7 @@
 #include <iostream>
 #include "utils.h"
 
+
 namespace Iterative {
 
     template <typename Scalar, long long SIZE>
@@ -29,7 +30,7 @@ namespace Iterative {
                 const Scalar tolerance) :
                 A(A), b(b), iterations(iterations), tolerance(tolerance), solution(b) {
 
-            solution.setZero();
+            solution.fill((Scalar)1/solution.size());
         }
 
         Eigen::ColumnVector<Scalar, SIZE> solve() {
@@ -72,6 +73,10 @@ namespace Iterative {
             }
             std::cout << iteration << std::endl;
             return  Eigen::ColumnVector<Scalar, SIZE> (solution);
+        }
+
+        const Eigen::ColumnVector<Scalar, SIZE> &getSolution() const {
+            return solution;
         }
 
     protected:
