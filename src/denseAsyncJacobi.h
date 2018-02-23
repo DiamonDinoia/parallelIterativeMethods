@@ -38,7 +38,7 @@ namespace Iterative {
 
         }
 
-        Eigen::ColumnVector<Scalar, SIZE> solve() {
+        const Eigen::ColumnVector<Scalar, SIZE> solve() {
 
 
             std::vector<ulonglong> index(solution.size());
@@ -51,8 +51,6 @@ namespace Iterative {
             auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
-                // initialize the error
-                Scalar error = tolerance - tolerance;
                 //calculate solutions parallelizing on rows
                 #pragma omp parallel
                 #pragma omp for schedule(dynamic) nowait
@@ -60,7 +58,7 @@ namespace Iterative {
                     auto el = index[i];
                     auto oldElement = solution[el];
                     solution[el] = solution_find(b[el], el);
-                    error = solution[el]-oldElement;
+                    Scalar error = std::abs(solution[el]-oldElement);
                     if(error <= tolerance){
                         #pragma omp critical
                         remove.emplace_back(i);
@@ -79,7 +77,7 @@ namespace Iterative {
 
             }
             std::cout << iteration << std::endl;
-            return Eigen::ColumnVector<Scalar,SIZE>(solution);
+            return this->solution;
         }
 
     protected:

@@ -1,9 +1,9 @@
 //
-// Created by mbarb on 21/02/2018.
+// Created by mbarb on 23/02/2018.
 //
 
-#ifndef PARALLELITERATIVE_SPAREFIXEDBLOCKSJACOBI_H
-#define PARALLELITERATIVE_SPAREFIXEDBLOCKSJACOBI_H
+#ifndef PARALLELITERATIVE_SPARSEOPTIMIZEDBLOCKSJACOBI_H
+#define PARALLELITERATIVE_SPARSEOPTIMIZEDBLOCKSJACOBI_H
 
 
 #include "Eigen"
@@ -12,8 +12,8 @@
 
 namespace Iterative {
 
-    template <typename Scalar, int BLOCKSIZE>
-    class sparseFixedBlocksJacobi : public sparseParallelJacobi<Scalar> {
+    template <typename Scalar>
+    class sparseOptimizedBlocksJacobi : public sparseParallelJacobi<Scalar> {
 
     public:
         /**
@@ -25,7 +25,7 @@ namespace Iterative {
          * @param workers number of threads
          * @param blockSize size of the block
          */
-        explicit sparseFixedBlocksJacobi(
+        explicit sparseOptimizedBlocksJacobi(
                 const Eigen::SparseMatrix<Scalar>& A,
                 const Eigen::ColumnVector<Scalar, Eigen::Dynamic>& b,
                 const ulonglong iterations,
@@ -47,18 +47,16 @@ namespace Iterative {
          */
         const Eigen::ColumnVector<Scalar, Eigen::Dynamic> &solve() {
 
-            Eigen::ColumnVector <Scalar, Eigen::Dynamic> oldSolution(this->solution);
-            std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic, Eigen::AutoAlign, BLOCKSIZE, BLOCKSIZE>>
-                    inverses(blocks.size());
+            Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldSolution(this->solution);
+            std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses(blocks.size());
 
-            Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic, Eigen::AutoAlign, BLOCKSIZE, BLOCKSIZE>
-                    I(this->blockSize,this->blockSize);
-
-            I.setIdentity();
+            Eigen::Matrix<Scalar,Eigen::Dynamic, Eigen::Dynamic> I(this->blockSize,this->blockSize);
             Eigen::SimplicialLDLT<Eigen::SparseMatrix<Scalar>> solver;
 
+            I.setIdentity();
+
             // compute the inverses of the blocks and memorize it
-            #pragma omp parallel for private(solver)
+            #pragma omp parallel for firstprivate(I) private(solver)
             for (int i = 0; i < blocks.size()-1; ++i) {
                 Eigen::SparseMatrix<Scalar> block = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
                                                                   blocks[i].rows);
@@ -78,32 +76,40 @@ namespace Iterative {
 
             }
 
+
             // start iterations
             auto iteration = 0L;
 
             std::vector<int> index;
 
-            auto lastElem = inverses.size();
+
+            Eigen::ColumnVector<Scalar, Eigen::Dynamic> Ax =
+                    Eigen::ColumnVector<Scalar, Eigen::Dynamic>::Zero(this->solution.rows(),this->solution.cols());
+
 
             for (iteration; iteration < this->iterations; ++iteration) {
 
+                Ax = this->A*oldSolution;
 
-                #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
-                for (int i = 0; i < lastElem; ++i) {
-                    // set zero the components of the solution b that corresponds to the inverse
-                    Eigen::Matrix<Scalar, Eigen::Dynamic, 1, Eigen::AutoAlign, BLOCKSIZE, 1> oldBlock =
-                            oldSolution.segment(blocks[i].startCol, blocks[i].cols);
+                #pragma omp parallel for schedule(dynamic)
+                for (auto i = 0; i < inverses.size(); ++i) {
 
-                    auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
 
-                    zeroBlock.setZero();
+                    auto oldBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);//
                     // the segment of the solution b that this inverse approximates
                     auto block = this->solution.segment(blocks[i].startCol, blocks[i].cols);
                     // approximate the solution using the inverse and the solution at the previous iteration
-                    block = inverses[i] *
-                            (this->b - (this->A * oldSolution)).segment(blocks[i].startCol, blocks[i].cols);
 
-                    zeroBlock = block;
+                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> correction =
+                            Eigen::ColumnVector<Scalar,Eigen::Dynamic>::Zero(oldSolution.rows(), oldSolution.cols());
+
+
+                    for (auto col = blocks[i].startCol; col < blocks[i].startCol+blocks[i].cols; ++col) {
+                        correction+=this->A.col(col)*oldSolution[col];
+                    }
+
+                    block = inverses[i] * (this->b - Ax + correction).segment(blocks[i].startCol, blocks[i].cols);
+
 
                     if ((oldBlock - block).template lpNorm<1>() <= this->tolerance*block.size()) {
                         #pragma omp critical
@@ -114,13 +120,10 @@ namespace Iterative {
                 if (!index.empty()) {
                     std::sort(index.rbegin(), index.rend());
                     for (auto i : index) {
-                        if(i!=lastElem-1) {
-                            std::iter_swap(blocks.begin() + i, blocks.begin()+lastElem-1);
-                            std::iter_swap(inverses.begin() + i, inverses.begin()+lastElem-1);
-                        }
-                        lastElem--;
+                        blocks.erase(blocks.begin() + i);
+                        inverses.erase(inverses.begin() + i);
                     }
-                    if (lastElem<=0) break;
+                    if (inverses.empty()) break;
                     index.clear();
                 }
                 std::swap(this->solution, oldSolution);
@@ -149,4 +152,4 @@ namespace Iterative {
 }
 
 
-#endif //PARALLELITERATIVE_SPAREFIXEDBLOCKSJACOBI_H
+#endif //PARALLELITERATIVE_SPARSEOPTIMIZEDBLOCKSJACOBI_H

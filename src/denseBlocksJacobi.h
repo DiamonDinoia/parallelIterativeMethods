@@ -45,7 +45,7 @@ namespace Iterative {
 		 *
 		 * @return
 		 */
-		Eigen::ColumnVector<Scalar, SIZE> solve() {
+		const Eigen::ColumnVector<Scalar, SIZE> solve() {
 
 			Eigen::ColumnVector<Scalar, SIZE> oldSolution(this->solution);
 			std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> inverses(blocks.size());
@@ -102,7 +102,7 @@ namespace Iterative {
 
 			}
             std::cout << iteration << std::endl;
-			return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
+			return this->solution;
 		}
 
 	protected:

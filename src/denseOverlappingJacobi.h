@@ -37,7 +37,7 @@ namespace Iterative {
         }
 
 
-        Eigen::ColumnVector<Scalar, SIZE> solve() {
+        const Eigen::ColumnVector<Scalar, SIZE> solve() {
 
             Eigen::ColumnVector<Scalar, SIZE> oldSolution(this->solution);
             Scalar error = this->tolerance - this->tolerance;
@@ -116,7 +116,7 @@ namespace Iterative {
                 std::swap(this->solution, oldSolution);
             }
             std::cout << iteration << std::endl;
-            return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
+            return this->solution;
         }
 
     protected:

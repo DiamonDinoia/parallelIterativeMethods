@@ -37,7 +37,7 @@ namespace Iterative {
             omp_set_num_threads(workers);
         }
 
-        Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
+        const Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
 
 
             Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldSolution(solution);
@@ -52,14 +52,12 @@ namespace Iterative {
             auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
-                // initialize the error
-                Scalar error = tolerance - tolerance;
                 //calculate solutions parallelizing on rows
                 #pragma omp parallel for schedule(dynamic)
                 for (long long i = 0; i < index.size(); ++i){
                     auto el = index[i];
                     solution[el] = solution_find(b[el], el, oldSolution);
-                    error = solution[el]-oldSolution[el];
+                    Scalar error = std::abs(solution[el]-oldSolution[el]);
                     if(error <= tolerance){
                         #pragma omp critical
                         remove.emplace_back(i);

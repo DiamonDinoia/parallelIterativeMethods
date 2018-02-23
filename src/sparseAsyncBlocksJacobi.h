@@ -44,22 +44,35 @@ namespace Iterative {
         }
 
 
-        Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
+        const Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
 
             Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldSolution(this->solution);
             std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses(blocks.size());
 
             // compute the inverses of the blocks and memorize it
-            #pragma omp parallel for schedule(dynamic)
-            for (int i = 0; i < blocks.size(); ++i) {
+            Eigen::Matrix<Scalar,Eigen::Dynamic, Eigen::Dynamic> I(this->blockSize,this->blockSize);
+            I.setIdentity();
+            Eigen::SimplicialLDLT<Eigen::SparseMatrix<Scalar>> solver;
+
+            // compute the inverses of the blocks and memorize it
+            #pragma omp parallel for firstprivate(I) private(solver)
+            for (int i = 0; i < blocks.size()-1; ++i) {
                 Eigen::SparseMatrix<Scalar> block = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
                                                                   blocks[i].rows);
-                Eigen::SimplicialLDLT solver(block);
-//				solver.compute(block);
-                Eigen::Matrix<Scalar,Eigen::Dynamic, Eigen::Dynamic> I(block.rows(),block.cols());
-                I.setIdentity();
+                solver.compute(block);
+                inverses[i] = solver.solve(I);
+            }
+            {
 
-                inverses[i] = solver.solve(I);;
+                Eigen::SparseMatrix<Scalar> block = this->A.block(blocks.back().startCol, blocks.back().startRow,
+                                                                  blocks.back().cols,blocks.back().rows);
+                if(block.cols()!=this->blockSize || block.rows()!=this->blockSize){
+                    I.resize(block.rows(), block.cols());
+                    I.setIdentity();
+                }
+                solver.compute(block);
+                inverses.back() = solver.solve(I);
+
             }
 
             // start iterations
@@ -94,12 +107,13 @@ namespace Iterative {
 
                     zeroBlock = block;
 
-                    if ((oldBlock - block).template lpNorm<1>() / block.size() <= this->tolerance) {
+                    if ((oldBlock - block).template lpNorm<1>() <= this->tolerance*block.size()) {
                         #pragma omp critical
                         index.emplace_back(i);
                     }
                 }
                 if (!index.empty()) {
+
                     #pragma omp barrier
 
                     #pragma omp single
@@ -109,15 +123,15 @@ namespace Iterative {
                             blocks.erase(blocks.begin() + i);
                             inverses.erase(inverses.begin() + i);
                         }
-                        index.clear();
                         stop = inverses.empty();
+                        index.clear();
                     };
                 }
 
             }
             #pragma omp barrier
             std::cout << iteration << std::endl;
-            return Eigen::ColumnVector<Scalar, Eigen::Dynamic>(this->solution);
+            return this->solution;
         }
 
     protected:

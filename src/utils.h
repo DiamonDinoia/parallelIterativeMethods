@@ -9,16 +9,10 @@
 #include "Eigen"
 
 namespace Eigen {
-	//
-	//    template<typename Scalar, int SIZE>
-	//    using SquareMatrix = Matrix<Scalar, SIZE, SIZE>;
+
 
 	template <typename Scalar, int SIZE>
 	using ColumnVector = Matrix<Scalar, SIZE, 1>;
-
-
-
-
 
 };
 
@@ -48,9 +42,6 @@ namespace Iterative {
 			return out << std::endl;
 		}
 
-//		Index &operator = (const Index &index){
-//
-//		}
 	};
 
     typedef std::chrono::high_resolution_clock Time;

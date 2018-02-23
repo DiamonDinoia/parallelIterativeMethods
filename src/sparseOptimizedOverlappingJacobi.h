@@ -1,25 +1,23 @@
 //
-// Created by mbarb on 05/02/2018.
+// Created by mbarb on 23/02/2018.
 //
 
-#ifndef PARALLELITERATIVE_SPARSEOVERLAPPINGJACOBI_H
-#define PARALLELITERATIVE_SPARSEOVERLAPPINGJACOBI_H
-
+#ifndef PARALLELITERATIVE_SPARSEOPRIMIZEDOVERLAPPINGJACOBI_H
+#define PARALLELITERATIVE_SPARSEOPRIMIZEDOVERLAPPINGJACOBI_H
 
 
 #include "Eigen"
 #include "utils.h"
 #include "sparseParallelJacobi.h"
-#include <typeinfo>
 
 
 namespace Iterative {
 
     template <typename Scalar>
-    class sparseOverlappingJacobi : public sparseParallelJacobi<Scalar> {
+    class sparseOptimizedOverlappingJacobi : public sparseParallelJacobi<Scalar> {
     public:
 
-        explicit sparseOverlappingJacobi(
+        explicit sparseOptimizedOverlappingJacobi(
                 const Eigen::SparseMatrix<Scalar>& A,
                 const Eigen::ColumnVector<Scalar, Eigen::Dynamic>& b,
                 const ulonglong iterations,
@@ -55,13 +53,15 @@ namespace Iterative {
             for (long i = 0; i < blocks.size()-1; ++i) {
                 Eigen::SparseMatrix<Scalar> block = this->A.block(blocks[i].startCol, blocks[i].startRow, blocks[i].cols,
                                                                   blocks[i].rows);
-				solver.compute(block);
+//                Eigen::SimplicialLDLT<Eigen::SparseMatrix<Scalar>> solver(block);
+                solver.compute(block);
                 if(I.size() != block.size()){
                     I.resize(block.rows(), block.cols());
                     I.setIdentity();
                 }
                 inverses[i].first = i;
                 inverses[i].second = solver.solve(I);
+//                inverses[i] = std::pair<ulonglong, Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>>(i,solver.solve(I));
             }
             {
                 Eigen::SparseMatrix<Scalar> block = this->A.block(blocks.back().startCol, blocks.back().startRow,
@@ -77,34 +77,41 @@ namespace Iterative {
 
             auto iteration = 0L;
             std::vector<int> index;
+            Eigen::ColumnVector<Scalar, Eigen::Dynamic> Ax =
+                    Eigen::ColumnVector<Scalar, Eigen::Dynamic>::Zero(this->solution.rows(),this->solution.cols());
 
 
             for (iteration; iteration < this->iterations; ++iteration) {
 
+                Ax = this->A*oldSolution;
+
                 // Calculate the solution in parallel
-                #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
+                #pragma omp parallel for schedule(dynamic)
                 for (int i = 0; i < inverses.size(); ++i) {
 
                     Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = inverses[i].first%2 ?
-                           odd_solution.segment(blocks[i].startCol, blocks[i].cols) :
-                                 even_solution.segment(blocks[i].startCol, blocks[i].cols);
+                                                                           odd_solution.segment(blocks[i].startCol, blocks[i].cols) :
+                                                                           even_solution.segment(blocks[i].startCol, blocks[i].cols);
 
-                    auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
+                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> correction =
+                            Eigen::ColumnVector<Scalar,Eigen::Dynamic>::Zero(oldSolution.rows(), oldSolution.cols());
 
-                    zeroBlock.setZero();
+
+                    for (auto col = blocks[i].startCol; col < blocks[i].startCol+blocks[i].cols; ++col) {
+                        correction+=this->A.col(col)*oldSolution[col];
+                    }
+
 
                     auto block = inverses[i].first%2 ? odd_solution.segment(blocks[i].startCol, blocks[i].cols) :
                                  even_solution.segment(blocks[i].startCol, blocks[i].cols);
 
-                    block = inverses[i].second * (this->b - (this->A * oldSolution)).segment(blocks[i].startCol,
-                                                                                           blocks[i].cols);
+                    block = inverses[i].second * (this->b - Ax + correction).segment(blocks[i].startCol,
+                                                                                             blocks[i].cols);
 
                     if ((oldBlock - block).template lpNorm<1>() <= this->tolerance*block.size()) {
                         #pragma omp critical
                         index.emplace_back(i);
                     }
-
-                    zeroBlock = block;
 
                 }
 
@@ -144,7 +151,7 @@ namespace Iterative {
         void splitter() {
             for (ulonglong i = 0; i < this->A.cols()-overlap; i += (blockSize-overlap))
                 blocks.emplace_back(Index(i, std::min(blockSize, (ulonglong) this->A.cols() - i),
-                                              i, std::min(blockSize, (ulonglong) this->A.rows() - i)));
+            i, std::min(blockSize, (ulonglong) this->A.rows() - i)));
         }
 
 
@@ -156,4 +163,4 @@ namespace Iterative {
 }
 
 
-#endif //PARALLELITERATIVE_DENSEOVERLAPPINGJACOBI_H
+#endif //PARALLELITERATIVE_SPARSEOPRIMIZEDOVERLAPPINGJACOBI_H

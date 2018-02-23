@@ -1,9 +1,9 @@
 //
-// Created by mbarb on 21/02/2018.
+// Created by mbarb on 23/02/2018.
 //
 
-#ifndef PARALLELITERATIVE_DENSEFIXEDBLOCKSJACOBI_H
-#define PARALLELITERATIVE_DENSEFIXEDBLOCKSJACOBI_H
+#ifndef PARALLELITERATIVE_DENSEOPTIMIZEDBLOCKJACOBI_H
+#define PARALLELITERATIVE_DENSEOPTIMIZEDBLOCKJACOBI_H
 
 
 #include "Eigen"
@@ -12,8 +12,8 @@
 
 namespace Iterative {
 
-    template <typename Scalar, long long SIZE, int BLOCKSIZE>
-    class denseFixedBlocksJacobi : public denseParallelJacobi<Scalar, SIZE> {
+    template <typename Scalar, long long SIZE>
+    class denseOptimizedBlocksJacobi : public denseParallelJacobi<Scalar, SIZE> {
 
     public:
         /**
@@ -25,7 +25,7 @@ namespace Iterative {
          * @param workers number of threads
          * @param blockSize size of the block
          */
-        explicit denseFixedBlocksJacobi(
+        explicit denseOptimizedBlocksJacobi(
                 const Eigen::Matrix<Scalar, SIZE, SIZE>& A,
                 const Eigen::ColumnVector<Scalar, SIZE>& b,
                 const ulonglong iterations,
@@ -48,8 +48,7 @@ namespace Iterative {
         const Eigen::ColumnVector<Scalar, SIZE> solve() {
 
             Eigen::ColumnVector<Scalar, SIZE> oldSolution(this->solution);
-            std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::AutoAlign, BLOCKSIZE, BLOCKSIZE>>
-                    inverses(blocks.size());
+            std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> inverses(blocks.size());
 
             // compute the inverses of the blocks and memorize it
             #pragma omp parallel for
@@ -63,66 +62,59 @@ namespace Iterative {
 
             std::vector<int> index;
 
-            auto lastElem = inverses.size();
+            Eigen::ColumnVector<Scalar, Eigen::Dynamic> Ax =
+                    Eigen::ColumnVector<Scalar, Eigen::Dynamic>::Zero(this->solution.rows(),this->solution.cols());
+
 
             for (iteration; iteration < this->iterations; ++iteration) {
 
+                Ax = this->A*oldSolution;
+//                #pragma omp parallel for
+//                for (auto i = 0; i < this->A.rows(); ++i) {
+//                    Ax[i]=this->A.row(i)*oldSolution;
+//                }
 
-                #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
-                for (int i = 0; i < lastElem; ++i) {
-                    // set zero the components of the solution b that corresponds to the inverse
-                    Eigen::Matrix<Scalar, Eigen::Dynamic, 1, Eigen::AutoAlign, BLOCKSIZE, 1> oldBlock =
-                            oldSolution.segment(blocks[i].startCol, blocks[i].cols);
+                #pragma omp parallel for  schedule(dynamic)
+                for (auto i = 0; i < inverses.size(); ++i) {
 
                     auto zeroBlock = oldSolution.segment(blocks[i].startCol, blocks[i].cols);
-
-                    zeroBlock.setZero();
-                    // the segment of the solution b that this inverse approximates
                     auto block = this->solution.segment(blocks[i].startCol, blocks[i].cols);
-                    // approximate the solution using the inverse and the solution at the previous iteration
-                    block = inverses[i] *
-                            (this->b - (this->A * oldSolution)).segment(blocks[i].startCol, blocks[i].cols);
 
-                    zeroBlock = block;
+                    Eigen::ColumnVector<Scalar,Eigen::Dynamic> correction =
+                            Eigen::ColumnVector<Scalar,Eigen::Dynamic>::Zero(oldSolution.rows(), oldSolution.cols());
 
-                    if ((oldBlock - block).template lpNorm<1>() <= this->tolerance*block.size()) {
+
+                    for (auto col = blocks[i].startCol; col < blocks[i].startCol+blocks[i].cols; ++col) {
+                        correction+=this->A.col(col)*oldSolution[col];
+                    }
+
+
+                    block = inverses[i] * (this->b - Ax + correction).segment(blocks[i].startCol, blocks[i].cols);
+
+
+                    if ((zeroBlock - block).template lpNorm<1>() <= this->tolerance*block.size()) {
                         #pragma omp critical
                         index.emplace_back(i);
                     }
-                }
-                if(BLOCKSIZE != Eigen::Dynamic){
-                    if (!index.empty()) {
-                        std::sort(index.rbegin(), index.rend());
-                        for (auto i : index) {
-                            if(i!=lastElem-1) {
-                                std::iter_swap(blocks.begin() + i, blocks.begin()+lastElem-1);
-                                std::iter_swap(inverses.begin() + i, inverses.begin()+lastElem-1);
-                            }
-                            lastElem--;
-                        }
-                        if (lastElem<=0) break;
-                        index.clear();
-                    }
-
-                }else{
-                    if (!index.empty()) {
-                        std::sort(index.rbegin(), index.rend());
-                        for (auto i : index) {
-                            blocks.erase(blocks.begin() + i);
-                            inverses.erase(inverses.begin() + i);
-                        }
-                        index.clear();
-                        lastElem = inverses.size();
-                        if (inverses.empty()) break;
-                    }
+                    zeroBlock = block;
                 }
 
+                if (!index.empty()) {
+                    std::sort(index.rbegin(), index.rend());
+                    for (auto i : index) {
+                        blocks.erase(blocks.begin() + i);
+                        inverses.erase(inverses.begin() + i);
+                    }
+                    if (inverses.empty()) break;
+                    index.clear();
+                }
                 std::swap(this->solution, oldSolution);
 
             }
             std::cout << iteration << std::endl;
             return this->solution;
         }
+
 
     protected:
         ulonglong blockSize;
@@ -143,4 +135,4 @@ namespace Iterative {
 }
 
 
-#endif //PARALLELITERATIVE_DENSEFIXEDBLOCKSJACOBI_H
+#endif //PARALLELITERATIVE_DENSEOPTIMIZEDBLOCKJACOBI_H

@@ -33,7 +33,7 @@ namespace Iterative {
             solution.fill((Scalar)1/solution.size());
         }
 
-        Eigen::ColumnVector<Scalar, SIZE> solve() {
+        const Eigen::ColumnVector<Scalar, SIZE> solve() {
 
 
             Eigen::ColumnVector<Scalar, SIZE> oldSolution(solution);
@@ -48,13 +48,11 @@ namespace Iterative {
             auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
-                // initialize the error
-                Scalar error = tolerance - tolerance;
                 //calculate solutions parallelizing on rows
                 for (long long i = 0; i < index.size(); ++i){
                     auto el = index[i];
                     solution[el] = solution_find(b[el], el, oldSolution);
-                    error = solution[el]-oldSolution[el];
+                    Scalar error = std::abs(solution[el]-oldSolution[el]);
                     if(error <= tolerance){
                         remove.emplace_back(i);
                     }
@@ -72,7 +70,7 @@ namespace Iterative {
                 std::swap(solution, oldSolution);
             }
             std::cout << iteration << std::endl;
-            return  Eigen::ColumnVector<Scalar, SIZE> (solution);
+            return this->solution;
         }
 
         const Eigen::ColumnVector<Scalar, SIZE> &getSolution() const {

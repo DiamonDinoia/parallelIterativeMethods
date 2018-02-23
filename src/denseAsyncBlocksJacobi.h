@@ -44,7 +44,7 @@ namespace Iterative {
         }
 
 
-        Eigen::ColumnVector<Scalar, SIZE> solve() {
+        const Eigen::ColumnVector<Scalar, SIZE> solve() {
 
             Eigen::ColumnVector<Scalar, SIZE> oldSolution(this->solution);
             std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> inverses(blocks.size());
@@ -68,8 +68,6 @@ namespace Iterative {
                 #pragma omp for private(oldSolution) schedule(dynamic) nowait
                 for (int i = 0; i < inverses.size(); ++i) {
 
-//                    std::cout << omp_get_thread_num() << std::endl;
-
                     oldSolution = this->solution;
                     // set zero the components of the solution b that corresponds to the inverse
                     Eigen::ColumnVector<Scalar, Eigen::Dynamic> oldBlock = oldSolution.segment(
@@ -88,7 +86,6 @@ namespace Iterative {
 
                     zeroBlock = block;
 
-//                    std::cout << "CIAONE" << std::endl;
 
                     if ((oldBlock - block).template lpNorm<1>() / block.size() <= this->tolerance) {
                         #pragma omp critical
@@ -113,7 +110,7 @@ namespace Iterative {
             }
             #pragma omp barrier
             std::cout << iteration << std::endl;
-            return Eigen::ColumnVector<Scalar, SIZE>(this->solution);
+            return this->solution;
         }
 
 

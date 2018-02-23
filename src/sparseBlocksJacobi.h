@@ -51,8 +51,9 @@ namespace Iterative {
 			std::vector<Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>> inverses(blocks.size());
 
             Eigen::Matrix<Scalar,Eigen::Dynamic, Eigen::Dynamic> I(this->blockSize,this->blockSize);
-            I.setIdentity();
             Eigen::SimplicialLDLT<Eigen::SparseMatrix<Scalar>> solver;
+
+            I.setIdentity();
 
 			// compute the inverses of the blocks and memorize it
             #pragma omp parallel for firstprivate(I) private(solver)
@@ -81,10 +82,7 @@ namespace Iterative {
 
 			std::vector<int> index;
 
-            auto lastElem = inverses.size();
-
 			for (iteration; iteration < this->iterations; ++iteration) {
-
 
                 #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
 				for (int i = 0; i < inverses.size(); ++i) {
