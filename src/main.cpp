@@ -32,8 +32,8 @@ int main(const int argc, const char* argv[]) {
     Eigen::setNbThreads(8);
 
 
-	const int size = 4096;
-	const int iterations = 5000;
+	const int size = 1024;
+	const int iterations = 1000;
 	const auto tolerance = 0.000000001;
 //	const auto tolerance = 0.0;
 //	const auto tolerance = 0.00000000000000000001;
@@ -130,21 +130,21 @@ int main(const int argc, const char* argv[]) {
 //    cout << "error: " << error << endl;
 //    std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
-//    cout << "Parallel" << endl;
-//    start_time = Time::now();
-//    x = parallelJacobi.solve();
-//    end_time = Time::now();
-//    error = (b-A*x).template lpNorm<1>()/size;
-//    cout << "error: " << error << endl;
-//    std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
-//
-//    cout << "Parallel async" << endl;
-//    start_time = Time::now();
-//    x = asyncJacobi.solve();
-//    end_time = Time::now();
-//    error = (b-A*x).template lpNorm<1>()/size;
-//    cout << "error: " << error << endl;
-//    std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+    cout << "Parallel" << endl;
+    start_time = Time::now();
+    x = parallelJacobi.solve();
+    end_time = Time::now();
+    error = (b-A*x).template lpNorm<1>()/size;
+    cout << "error: " << error << endl;
+    std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+
+    cout << "Parallel async" << endl;
+    start_time = Time::now();
+    x = asyncJacobi.solve();
+    end_time = Time::now();
+    error = (b-A*x).template lpNorm<1>()/size;
+    cout << "error: " << error << endl;
+    std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
 
     cout << "Parallel blocks" << endl;
     start_time = Time::now();

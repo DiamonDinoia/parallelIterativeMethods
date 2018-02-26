@@ -54,7 +54,7 @@ namespace Iterative {
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
                 #pragma omp parallel for schedule(dynamic)
-                for (long long i = 0; i < index.size(); ++i){
+                for (auto i = 0; i < index.size(); ++i){
                     auto el = index[i];
                     solution[el] = solution_find(b[el], el, oldSolution);
                     Scalar error = std::abs(solution[el]-oldSolution[el]);

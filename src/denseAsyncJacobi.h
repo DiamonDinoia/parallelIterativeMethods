@@ -33,7 +33,7 @@ namespace Iterative {
                 A(A), b(b), iterations(iterations), tolerance(tolerance),
                 workers(workers),solution(b) {
 
-            solution.setZero();
+            solution.fill((Scalar)1/solution.size());
             omp_set_num_threads(workers);
 
         }

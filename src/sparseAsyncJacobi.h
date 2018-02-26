@@ -33,7 +33,7 @@ namespace Iterative {
                 A(A), b(b), iterations(iterations), tolerance(tolerance),
                 workers(workers),solution(b) {
 
-            solution.setZero();
+            solution.fill((Scalar)1/solution.size());
             omp_set_num_threads(workers);
 
         }
@@ -53,7 +53,7 @@ namespace Iterative {
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
                 #pragma omp parallel
-                #pragma omp for schedule(dynamic) nowait
+                #pragma omp for schedule(static) nowait
                 for (long long i = 0; i < index.size(); ++i){
                     auto el = index[i];
                     Scalar oldElement = solution[el];

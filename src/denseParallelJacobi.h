@@ -51,7 +51,7 @@ namespace Iterative {
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
                 #pragma omp parallel for schedule(dynamic)
-                for (long long i = 0; i < index.size(); ++i){
+                for (auto i = 0; i < index.size(); ++i){
                     auto el = index[i];
                     solution[el] = solution_find(b[el], el, oldSolution);
                     Scalar error = std::abs(solution[el]-oldSolution[el]);
@@ -70,11 +70,6 @@ namespace Iterative {
                     if (index.empty()) break;
                 }
 
-                //compute the error norm 1 weighted on the size of the A
-//                error += (solution - oldSolution).template lpNorm<1>();
-                // check the error
-//                error /= solution.size();
-//                if (error <= tolerance) break;
                 std::swap(solution, oldSolution);
             }
             std::cout << iteration << std::endl;
