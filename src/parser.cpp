@@ -27,12 +27,12 @@
 //        match_results(line, intMatches, integer);
 //        match_results(line, realMatches, real);
 //
-//        if (intMatches.size()==3){
+//        if (intMatches.matrixSize()==3){
 //            matrix.resize(stol(intMatches[0]), stol(intMatches[1]));
 //            matrix.resizeNonZeros(stol(intMatches[2]));
 //        }
 //
-//        if (intMatches.size()==2 && realMatches.size()==1){
+//        if (intMatches.matrixSize()==2 && realMatches.matrixSize()==1){
 //            matrix.insert(stol(intMatches[0]), stol(intMatches[1]), stod(realMatches[0]));
 //        }
 //
