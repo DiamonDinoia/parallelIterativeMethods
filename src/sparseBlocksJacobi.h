@@ -77,12 +77,10 @@ namespace Iterative {
             }
 
 
-			// start iterations
-			auto iteration = 0L;
 
 			std::vector<int> index;
 
-			for (iteration; iteration < this->iterations; ++iteration) {
+			for (this->iteration=0L; this->iteration < this->iterations; ++this->iteration) {
 
                 #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
 				for (int i = 0; i < inverses.size(); ++i) {
@@ -119,7 +117,7 @@ namespace Iterative {
 				std::swap(this->solution, oldSolution);
 
 			}
-            std::cout << iteration << std::endl;
+            std::cout << this->iteration << std::endl;
 			return this->solution;
 		}
 

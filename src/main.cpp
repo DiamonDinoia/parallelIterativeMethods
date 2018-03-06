@@ -1,7 +1,8 @@
 #include <iostream>
 #include <Eigen>
 #include <fstream>
-#include <getopt.h>
+#include <unistd.h>
+#include <cstdlib>
 #include "denseBlocksJacobi.h"
 #include "denseOverlappingJacobi.h"
 #include "denseAsyncBlocksJacobi.h"
@@ -29,6 +30,8 @@ using namespace Iterative;
 //template<T> SquareMatrix<float>{};
 
 auto debug = false;
+auto toCsv = false;
+char* filename = NULL;
 
 ulong matrixSize = 1024;
 ulong iterations = 1000;
@@ -36,7 +39,7 @@ double tolerance = 0.000000001;
 //	const auto tolerance = 0.0;
 //	const auto tolerance = 0.00000000000000000001;
 int workers = 8;
-auto blockSize = 256;
+auto blockSize = 64;
 
 const auto sequential = "sequential";
 const auto parallel = "parallel";
@@ -47,6 +50,7 @@ const auto blocks_async = "blocks_async";
 const auto overlapping = "overlapping";
 const auto overlapping_optimized = "overlapping_optimized";
 const auto overlapping_async = "overlapping_async";
+
 
 enum methods {
     SEQUENTIAL,
@@ -61,13 +65,16 @@ enum methods {
 };
 
 auto method = SEQUENTIAL;
+string methodString = sequential;
 
 void parse_args(int argc, char *argv[]);
+void write_csv(string fileName, std::chrono::duration<double> time, double error, long iteration);
 
 int main(int argc, char *argv[]) {
 
-    parse_args(argc,argv);
-    Eigen::setNbThreads(8);
+    parse_args(argc, argv);
+
+    Eigen::setNbThreads(workers);
     auto error = 0.;
 
     chrono::time_point<chrono::high_resolution_clock> start_time;
@@ -148,11 +155,14 @@ int main(int argc, char *argv[]) {
         sparseAsyncBlocksJacobi<double> asyncBlocksJacobi(A, b, iterations, tolerance, workers, blockSize);
         sparseAsyncOverlappingJacobi<double> asyncOverlappingJacobi(A, b, iterations, tolerance, workers, blockSize);
 
-        #endif
+#endif
+
+    auto iterationsPerformed = 0L;
 
     switch (method){
 
         case SEQUENTIAL:
+            methodString = sequential;
             cout << "Sequential" << endl;
             start_time = Time::now();
             x = serialJacobi.solve();
@@ -160,8 +170,10 @@ int main(int argc, char *argv[]) {
             error = (b-A*x).template lpNorm<1>()/matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = serialJacobi.getIteration();
             break;
         case PARALLEL:
+            methodString = parallel;
             cout << "Parallel" << endl;
             start_time = Time::now();
             x = parallelJacobi.solve();
@@ -169,8 +181,10 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = parallelJacobi.getIteration();
             break;
         case PARALLEL_ASYNC:
+            methodString = parallel_async;
             cout << "Parallel async" << endl;
             start_time = Time::now();
             x = asyncJacobi.solve();
@@ -178,8 +192,10 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = asyncJacobi.getIteration();
             break;
         case BLOCKS:
+            methodString = blocks;
             cout << "Parallel blocks" << endl;
             start_time = Time::now();
             x = blocksJacobi.solve();
@@ -187,8 +203,11 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = blocksJacobi.getIteration();
+
             break;
         case BLOCKS_OPTIMIZED:
+            methodString = blocks_optimized;
             cout << "Parallel Optimized blocks" << endl;
             start_time = Time::now();
             x = optimizedBlocksJacobi.solve();
@@ -196,8 +215,10 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = optimizedBlocksJacobi.getIteration();
             break;
         case BLOCKS_ASYNC:
+            methodString = blocks_async;
             cout << "Parallel async blocks" << endl;
             start_time = Time::now();
             x = asyncBlocksJacobi.solve();
@@ -205,8 +226,11 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = asyncBlocksJacobi.getIteration();
+
             break;
         case OVERLAPPING:
+            methodString = overlapping;
             cout << "Parallel overlapping" << endl;
             start_time = Time::now();
             x = overlappingJacobi.solve();
@@ -214,8 +238,10 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = overlappingJacobi.getIteration();
             break;
         case OVERLAPPING_OPTIMIZED:
+            methodString = overlapping_optimized;
             cout << "Parallel optimized overlapping" << endl;
             start_time = Time::now();
             x = optimizedOverlappingJacobi.solve();
@@ -223,8 +249,10 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = optimizedOverlappingJacobi.getIteration();
             break;
         case OVERLAPPING_ASYNC:
+            methodString = overlapping_async;
             cout << "Parallel async overlapping blocks" << endl;
             start_time = Time::now();
             x = asyncOverlappingJacobi.solve();
@@ -232,8 +260,11 @@ int main(int argc, char *argv[]) {
             error = (b - A * x).template lpNorm<1>() / matrixSize;
             cout << "error: " << error << endl;
             std::cout << "time: " << ' ' << dsec(end_time - start_time).count() << std::endl;
+            iterationsPerformed = asyncOverlappingJacobi.getIteration();
             break;
     }
+
+    if(toCsv) write_csv(filename, dsec(end_time - start_time), error, iterationsPerformed);
 
     if(debug) cout << x.transpose() << endl;
 
@@ -255,37 +286,92 @@ void parse_args(int argc,  char *argv[]) {
     else if (arg == overlapping_async) method = OVERLAPPING_ASYNC;
     else exit(1);
 
-    errno = 0;
-    int c;
+    InputParser input(argc,argv);
 
-    while ((c = getopt(argc, argv, "w:s:i:t:b:")) != -1) {
-        switch (c) {
-            case 'w':
-                workers = (int) strtol(optarg, nullptr, 10);
-                break;
-            case 's':
-                matrixSize = (ulong) strtol(optarg, nullptr, 10);
-                break;
-            case 'i':
-                iterations = (ulong) strtol(optarg, nullptr, 10) - 1;
-                break;
-            case 't':
-                tolerance = stod(optarg);
-                break;
-            case 'b':
-                blockSize = strtol(optarg, nullptr, 10);
-                break;
+    if(input.cmdOptionExists("-w")){
+
+        workers = (int) strtol(input.getCmdOption("-w").c_str(), nullptr, 10);
+    }
+
+    if(input.cmdOptionExists("-s")){
+
+        matrixSize = (ulong) strtol(input.getCmdOption("-s").c_str(), nullptr, 10);
+    }
+
+    if(input.cmdOptionExists("-i")){
+
+        iterations = (ulong) strtol(input.getCmdOption("-i").c_str(), nullptr, 10);
+    }
+
+    if(input.cmdOptionExists("-t")){
+
+        tolerance = stod(input.getCmdOption("-t"));
+    }
+
+    if(input.cmdOptionExists("-b")){
+
+        blockSize = (int) strtol(input.getCmdOption("-b").c_str(), nullptr, 10);
+    }
+
+    if(input.cmdOptionExists("-p")){
+        filename = new char[input.getCmdOption("-p").length()];
+        strcpy(filename, input.getCmdOption("-p").c_str());
+        toCsv = true;
+        cout << filename << endl;
+    }
+    if(input.cmdOptionExists("-d")){
+        debug = true;
+    }
+
+
+//    errno = 0;
+//    int c;
+//
+//    while ((c = getopt(argc, argv, "w:s:i:t:b:p:d")) != -1) {
+//        cout << c << endl;
+//        switch (c) {
+//            case 'w':
+//                workers = (int) strtol(optarg, nullptr, 10);
+//                break;
+//            case 's':
+//                matrixSize = (ulong) strtol(optarg, nullptr, 10);
+//                break;
+//            case 'i':
+//                iterations = (ulong) strtol(optarg, nullptr, 10) - 1;
+//                break;
+//            case 't':
+//                tolerance = stod(optarg);
+//                break;
+//            case 'b':
+//                blockSize = strtol(optarg, nullptr, 10);
+//                break;
 //            case 'p':
 //                filename = new char[strlen(optarg)];
 //                strcpy(filename, optarg);
+//                toCsv = true;
 //                break;
-            case 'd':
-                debug = true;
-                break;
+//            case 'd':
+//                debug = true;
+//                break;
+//            default:
+//                cout << "ciao"<< endl;
+//        }
+//
+//    }
+//    if(errno) exit(errno);
+}
 
-        }
+void write_csv(string fileName, std::chrono::duration<double> time, double error, long iteration){
 
+    ifstream test(fileName);
+    auto exists = test.good();
+    test.close();
+    ofstream outFile(fileName, ofstream::out | ofstream::app);
+
+    if(!exists){
+        outFile << "algorithm,time,iterations,workers,error" << endl;
     }
 
+    outFile << methodString << ',' << time.count() << ',' << iteration <<','<< workers << ',' << error << endl;
 
 }

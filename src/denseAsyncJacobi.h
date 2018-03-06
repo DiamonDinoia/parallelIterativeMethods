@@ -48,7 +48,6 @@ namespace Iterative {
 
             std::vector<ulonglong> remove;
 
-            auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
@@ -92,6 +91,8 @@ namespace Iterative {
 
         Eigen::ColumnVector<Scalar, SIZE> solution;
 
+        long iteration = 0L;
+
     private:
         /**
         * utility function implementing the jacobi method in order to find one solution
@@ -107,6 +108,7 @@ namespace Iterative {
         }
 
     };
+
 };
 
 #endif //PARALLELITERATIVE_ASYNCJACOBI_H

@@ -75,11 +75,10 @@ namespace Iterative {
             }
             auto nInverses = blocks.size();
 
-            auto iteration = 0L;
             std::vector<int> index;
 
 
-            for (iteration; iteration < this->iterations; ++iteration) {
+            for (this->iteration=0L; this->iteration < this->iterations; ++this->iteration) {
 
                 // Calculate the solution in parallel
                 #pragma omp parallel for firstprivate(oldSolution) schedule(dynamic)
@@ -131,7 +130,7 @@ namespace Iterative {
 
                 std::swap(this->solution, oldSolution);
             }
-            std::cout << iteration << std::endl;
+            std::cout << this->iteration << std::endl;
             return this->solution;
         }
 

@@ -55,14 +55,13 @@ namespace Iterative {
 
             auto nInverses = blocks.size();
 
-            auto iteration = 0L;
             std::vector<int> index;
 
             Eigen::ColumnVector<Scalar, Eigen::Dynamic> Ax =
                     Eigen::ColumnVector<Scalar, Eigen::Dynamic>::Zero(this->solution.rows(),this->solution.cols());
 
 
-            for (iteration; iteration < this->iterations; ++iteration) {
+            for (this->iteration=0L; this->iteration < this->iterations; ++this->iteration) {
 
                 Ax = this->A*oldSolution;
 
@@ -121,7 +120,7 @@ namespace Iterative {
 
                 std::swap(this->solution, oldSolution);
             }
-            std::cout << iteration << std::endl;
+            std::cout << this->iteration << std::endl;
             return this->solution;
         }
 

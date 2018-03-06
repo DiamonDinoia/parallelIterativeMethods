@@ -46,7 +46,6 @@ namespace Iterative {
 
             std::vector<ulonglong> remove;
 
-            auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
@@ -80,6 +79,10 @@ namespace Iterative {
             return solution;
         }
 
+        const long getIteration() const {
+            return iteration;
+        }
+
 
     protected:
 
@@ -92,6 +95,7 @@ namespace Iterative {
         const ulong workers;
 
         Eigen::ColumnVector<Scalar, SIZE> solution;
+        long iteration = 0L;
 
     private:
         /**
@@ -108,6 +112,7 @@ namespace Iterative {
         }
 
     };
+
 };
 
 

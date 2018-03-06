@@ -32,6 +32,7 @@ namespace Iterative {
             solution.fill((Scalar)1/solution.size());
         }
 
+
         const Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
 
 
@@ -44,7 +45,6 @@ namespace Iterative {
 
             std::vector<ulonglong> remove;
 
-            auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
@@ -83,7 +83,10 @@ namespace Iterative {
 
         Eigen::ColumnVector<Scalar, Eigen::Dynamic> solution;
 
+        long iteration = 0L;
+
     private:
+
         /**
         * utility function implementing the jacobi method in order to find one solution
         * @param row coeffiient row
@@ -100,6 +103,10 @@ namespace Iterative {
     public:
         const Eigen::ColumnVector<Scalar, -1> &getSolution() const {
             return solution;
+        }
+
+        const long getIteration() const {
+            return iteration;
         }
 
     };

@@ -48,7 +48,6 @@ namespace Iterative {
 
             std::vector<ulonglong> remove;
 
-            auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
@@ -80,6 +79,14 @@ namespace Iterative {
             return this->solution;
         }
 
+        const long getIteration() const {
+            return iteration;
+        }
+
+        const Eigen::ColumnVector<Scalar, -1> &getSolution() const {
+            return solution;
+        }
+
     protected:
 
         const Eigen::SparseMatrix<Scalar>& A;
@@ -91,6 +98,8 @@ namespace Iterative {
         const ulong workers;
 
         Eigen::ColumnVector<Scalar, Eigen::Dynamic> solution;
+
+        long iteration = 0L;
 
     private:
         /**
@@ -106,7 +115,10 @@ namespace Iterative {
             return (term + A.coeff(index, index) * solution[index]) / A.coeff(index, index);
         }
 
+
     };
+
+
 };
 
 #endif //PARALLELITERATIVE_ASYNCJACOBI_H

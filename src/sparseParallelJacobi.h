@@ -37,6 +37,7 @@ namespace Iterative {
             omp_set_num_threads(workers);
         }
 
+
         const Eigen::ColumnVector<Scalar, Eigen::Dynamic> solve() {
 
 
@@ -49,7 +50,6 @@ namespace Iterative {
 
             std::vector<ulonglong> remove;
 
-            auto iteration = 0L;
 
             for (iteration = 0; iteration < iterations; ++iteration) {
                 //calculate solutions parallelizing on rows
@@ -83,6 +83,10 @@ namespace Iterative {
             return solution;
         }
 
+        const long getIteration() const {
+            return iteration;
+        }
+
     protected:
 
         const Eigen::SparseMatrix<Scalar>& A;
@@ -94,6 +98,8 @@ namespace Iterative {
         const ulong workers;
 
         Eigen::ColumnVector<Scalar, Eigen::Dynamic> solution;
+
+        long iteration = 0L;
 
     private:
         /**
@@ -109,7 +115,10 @@ namespace Iterative {
             return (term + A.coeff(index, index) * oldSolution[index]) / A.coeff(index, index);
         }
 
+
     };
+
+
 };
 
 

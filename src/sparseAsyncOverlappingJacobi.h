@@ -76,11 +76,10 @@ namespace Iterative {
             }
             auto nInverses = blocks.size();
 
-            auto iteration = 0L;
             std::vector<int> index;
             auto stop = false;
 
-            for (iteration; iteration < this->iterations && !stop; ++iteration) {
+            for (this->iteration=0L; this->iteration < this->iterations && !stop; ++this->iteration) {
 
                 // Calculate the solution in parallel
                 #pragma omp parallel
@@ -146,7 +145,7 @@ namespace Iterative {
             this->solution.tail(overlap) = nInverses%2 ?
                                         even_solution.tail(overlap) : odd_solution.tail(overlap);
 
-            std::cout << iteration << std::endl;
+            std::cout << this->iteration << std::endl;
             return this->solution;
         }
 

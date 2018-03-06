@@ -76,13 +76,12 @@ namespace Iterative {
             }
 
             // start iterations
-            auto iteration = 0L;
 
             std::vector<int> index;
 
 			auto stop = false;
 
-            for (iteration; iteration < this->iterations && !stop; ++iteration) {
+            for (this->iteration=0L; this->iteration < this->iterations && !stop; ++this->iteration) {
                 #pragma omp parallel
                 #pragma omp for private(oldSolution) schedule(dynamic) nowait
                 for (int i = 0; i < inverses.size(); ++i) {
@@ -130,7 +129,7 @@ namespace Iterative {
 
             }
             #pragma omp barrier
-            std::cout << iteration << std::endl;
+            std::cout << this->iteration << std::endl;
             return this->solution;
         }
 
