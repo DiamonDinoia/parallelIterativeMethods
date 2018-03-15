@@ -34,7 +34,7 @@ auto toCsv = false;
 char* filename = NULL;
 
 ulong matrixSize = 1024;
-ulong iterations = 1000;
+ulong iterations = 100;
 double tolerance = 0.000000001;
 //	const auto tolerance = 0.0;
 //	const auto tolerance = 0.00000000000000000001;
@@ -369,9 +369,10 @@ void write_csv(string fileName, std::chrono::duration<double> time, double error
     ofstream outFile(fileName, ofstream::out | ofstream::app);
 
     if(!exists){
-        outFile << "algorithm,time,iterations,workers,error" << endl;
+        outFile << "algorithm,time,iterations,workers,error,size" << endl;
     }
 
-    outFile << methodString << ',' << time.count() << ',' << iteration <<','<< workers << ',' << error << endl;
+    outFile << methodString << ',' << time.count() << ',' << iteration <<','<< workers << ',' << error << ','
+            << matrixSize << endl;
 
 }
