@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /arch:AVX /arch:SSE4 /arch:MMX")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -static")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
 include_directories(SYSTEM lib/Eigen)

@@ -31,7 +31,7 @@ using namespace Iterative;
 
 auto debug = false;
 auto toCsv = false;
-char* filename = NULL;
+string filename;
 
 ulong matrixSize = 1024;
 ulong iterations = 100;
@@ -268,13 +268,16 @@ int main(int argc, char *argv[]) {
 
     if(debug) cout << x.transpose() << endl;
 
+
+//    cerr << "OK" << endl;
+
     return 0;
 
 }
 
 void parse_args(int argc,  char *argv[]) {
 
-    string arg = std::string(argv[1]);
+    string arg(argv[1]);
     if (arg == sequential) method = SEQUENTIAL;
     else if (arg == parallel) method = PARALLEL;
     else if (arg == parallel_async) method = PARALLEL_ASYNC;
@@ -314,51 +317,15 @@ void parse_args(int argc,  char *argv[]) {
     }
 
     if(input.cmdOptionExists("-p")){
-        filename = new char[input.getCmdOption("-p").length()];
-        strcpy(filename, input.getCmdOption("-p").c_str());
+        filename = input.getCmdOption("-p");
         toCsv = true;
         cout << filename << endl;
     }
+
     if(input.cmdOptionExists("-d")){
         debug = true;
     }
 
-
-//    errno = 0;
-//    int c;
-//
-//    while ((c = getopt(argc, argv, "w:s:i:t:b:p:d")) != -1) {
-//        cout << c << endl;
-//        switch (c) {
-//            case 'w':
-//                workers = (int) strtol(optarg, nullptr, 10);
-//                break;
-//            case 's':
-//                matrixSize = (ulong) strtol(optarg, nullptr, 10);
-//                break;
-//            case 'i':
-//                iterations = (ulong) strtol(optarg, nullptr, 10) - 1;
-//                break;
-//            case 't':
-//                tolerance = stod(optarg);
-//                break;
-//            case 'b':
-//                blockSize = strtol(optarg, nullptr, 10);
-//                break;
-//            case 'p':
-//                filename = new char[strlen(optarg)];
-//                strcpy(filename, optarg);
-//                toCsv = true;
-//                break;
-//            case 'd':
-//                debug = true;
-//                break;
-//            default:
-//                cout << "ciao"<< endl;
-//        }
-//
-//    }
-//    if(errno) exit(errno);
 }
 
 void write_csv(string fileName, std::chrono::duration<double> time, double error, long iteration){
