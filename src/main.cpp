@@ -336,10 +336,10 @@ void write_csv(string fileName, std::chrono::duration<double> time, double error
     ofstream outFile(fileName, ofstream::out | ofstream::app);
 
     if(!exists){
-        outFile << "algorithm,time,iterations,workers,error,size" << endl;
+        outFile << "algorithm,time,iterations,workers,error,size,blockSize" << endl;
     }
 
     outFile << methodString << ',' << time.count() << ',' << iteration <<','<< workers << ',' << error << ','
-            << matrixSize << endl;
+            << matrixSize << ',' << blockSize << endl;
 
 }
