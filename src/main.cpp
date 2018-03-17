@@ -27,17 +27,16 @@ using namespace std;
 using namespace Eigen;
 using namespace Iterative;
 
-//template<T> SquareMatrix<float>{};
 
+auto fromFile = false;
 auto debug = false;
 auto toCsv = false;
 string filename;
+string inputMatrix;
 
 ulong matrixSize = 1024;
 ulong iterations = 100;
 double tolerance = 0.000000001;
-//	const auto tolerance = 0.0;
-//	const auto tolerance = 0.00000000000000000001;
 int workers = 8;
 auto blockSize = 64;
 
@@ -110,40 +109,42 @@ int main(int argc, char *argv[]) {
 
 #ifdef SPARSE
 
+        SparseMatrix<double>A;
+        if (fromFile){
+            ifstream input(inputMatrix);
+            read_matrix<double>(A, input);
+            input.close();
 
-    //    SparseMatrix<double>A;
-    //    ifstream input(argv[1]);
-    //    read_matrix<double>(A, input);
-    //    input.close();
+        } else {
 
-        SparseMatrix<double>A(matrixSize,matrixSize);
+            A.resize(matrixSize, matrixSize);
+            typedef Eigen::Triplet<double> T;
+
+            vector<T> triplets;
+
+            for (int i = 0; i < 100*matrixSize; ++i) {
+                triplets.emplace_back(T(abs(rand())%matrixSize,abs(rand())%matrixSize,(double)rand()*1000/RAND_MAX));
+                if(i<matrixSize)
+                    triplets.emplace_back(T(i,i,(double)rand()*1000/RAND_MAX));
+            }
+
+            A.setFromTriplets(triplets.begin(),triplets.end());
+
+            triplets.clear();
+
+            #pragma omp parallel for schedule(static)
+            for (int i = 0; i < matrixSize; ++i) {
+                auto sum=0.;
+                for (int j = 0; j < matrixSize; ++j) {
+                    sum+=abs(A.coeff(i,j));
+                }
+                A.coeffRef(i,i) = sum;
+            }
+        }
 
         ColumnVector<double, Dynamic> b = ColumnVector<double, Dynamic>::Zero(A.cols());
 
-        typedef Eigen::Triplet<double> T;
-
-        vector<T> triplets;
-
-        for (int i = 0; i < 100*matrixSize; ++i) {
-            triplets.emplace_back(T(abs(rand())%matrixSize,abs(rand())%matrixSize,(double)rand()*1000/RAND_MAX));
-            if(i<matrixSize)
-                triplets.emplace_back(T(i,i,(double)rand()*1000/RAND_MAX));
-        }
-
-        A.setFromTriplets(triplets.begin(),triplets.end());
-
-        triplets.clear();
-
-        #pragma omp parallel for schedule(static)
-        for (int i = 0; i < matrixSize; ++i) {
-            auto sum=0.;
-            for (int j = 0; j < matrixSize; ++j) {
-                sum+=abs(A.coeff(i,j));
-            }
-            A.coeffRef(i,i) = sum;
-        }
-
-    //    A.makeCompressed();
+        if(!fromFile) b.setRandom();
 
         sparseSerialJacobi<double> serialJacobi(A, b, iterations, tolerance);
         sparseParallelJacobi<double> parallelJacobi(A, b, iterations, tolerance, workers);
@@ -324,6 +325,11 @@ void parse_args(int argc,  char *argv[]) {
 
     if(input.cmdOptionExists("-d")){
         debug = true;
+    }
+
+    if(input.cmdOptionExists("-m")){
+        inputMatrix = input.getCmdOption("-m");
+        fromFile = true;
     }
 
 }

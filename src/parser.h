@@ -39,10 +39,6 @@ void read_matrix(Eigen::SparseMatrix<T>& matrix, std::ifstream& file){
 
     std::cout << "parsed" << std::endl;
 
-//    matrix.makeCompressed();
-//
-//    std::cout << "compressed" << std::endl;
-
 
 }
 
